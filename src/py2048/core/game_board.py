@@ -3,12 +3,16 @@
 # pylint: disable=too-few-public-methods
 
 import random
+from dataclasses import dataclass
 
 GRID_SIZE = 4
 
 
+@dataclass
 class GameBoard:
     """Class representing the game board for 2048."""
+
+    grid: list[list[int]]
 
     def __init__(self, grid: list[list[int]] | None = None):
         if grid is not None:
@@ -78,9 +82,3 @@ class GameBoard:
             merged_column.reverse()
             for row in range(GRID_SIZE):
                 self.grid[row][col] = merged_column[row]
-
-    def __eq__(self, other: object) -> bool:
-        """Check equality of two game boards."""
-        if not isinstance(other, GameBoard):
-            return False
-        return self.grid == other.grid
