@@ -39,5 +39,13 @@ def test_shift_board_up():
     """Test that the game board shifts tiles up correctly."""
     board = GameBoard()
     board.grid = [[2, 2, 2, 2], [2, 2, 0, 2], [0, 2, 2, 4], [0, 2, 0, 0]]
-    board.shift_up()  # Using left shift to simulate up
+    board.shift_up()
     assert board.grid == [[4, 4, 4, 4], [0, 4, 0, 4], [0, 0, 0, 0], [0, 0, 0, 0]]
+
+
+def test_shift_board_down():
+    """Test that the game board shifts tiles down correctly."""
+    board = GameBoard()
+    board.grid = [[0, 2, 0, 0], [2, 2, 2, 2], [2, 2, 0, 2], [0, 2, 2, 4]]
+    board.shift_down()
+    assert board.grid == [[0, 0, 0, 0], [0, 0, 0, 0], [0, 4, 0, 4], [4, 4, 4, 4]]
