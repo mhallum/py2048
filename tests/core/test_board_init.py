@@ -1,6 +1,6 @@
 """Unit tests for GameBoard initialization"""
 
-from py2048.core.game_board import GameBoard
+from py2048.core.models import GameBoard
 
 EXPECTED_TILES = 2
 

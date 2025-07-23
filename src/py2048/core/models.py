@@ -1,4 +1,4 @@
-"""Module for the 2048 game board."""
+"""Module containing domain models for the 2048 game."""
 
 # pylint: disable=too-few-public-methods
 

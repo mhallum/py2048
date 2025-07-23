@@ -1,6 +1,6 @@
 """Unit tests for the core game logic, specifically for moves in the game board."""
 
-from py2048.core.game_board import GameBoard
+from py2048.core.models import GameBoard
 
 
 def test_shift_board_left():
