@@ -31,14 +31,34 @@ class GameBoard:
             new_row = [tile for tile in row if tile != 0]
             merged_row: list[int] = []
             skip = False
-            for i, tile in enumerate(new_row):
+            for i, _ in enumerate(new_row):
                 if skip:
                     skip = False
                     continue
-                if i < len(new_row) - 1 and tile == new_row[i + 1]:
+                if i < len(new_row) - 1 and new_row[i] == new_row[i + 1]:
                     merged_row.append(new_row[i] * 2)
                     skip = True
                 else:
                     merged_row.append(new_row[i])
             merged_row.extend([0] * (GRID_SIZE - len(merged_row)))
+            row[:] = merged_row
+
+    def shift_right(self):
+        """Shift tiles to the right."""
+        for row in self.grid:
+            new_row = [tile for tile in row if tile != 0]
+            new_row.reverse()
+            merged_row: list[int] = []
+            skip = False
+            for i, _ in enumerate(new_row):
+                if skip:
+                    skip = False
+                    continue
+                if i < len(new_row) - 1 and new_row[i] == new_row[i + 1]:
+                    merged_row.append(new_row[i] * 2)
+                    skip = True
+                else:
+                    merged_row.append(new_row[i])
+            merged_row.extend([0] * (GRID_SIZE - len(merged_row)))
+            merged_row.reverse()
             row[:] = merged_row
