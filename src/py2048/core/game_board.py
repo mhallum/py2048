@@ -57,3 +57,11 @@ class GameBoard:
             merged_row = _merge_tiles(tiles)
             merged_row.reverse()
             row[:] = merged_row
+
+    def shift_up(self):
+        """Shift tiles upwards."""
+        for col in range(GRID_SIZE):
+            column = [self.grid[row][col] for row in range(GRID_SIZE)]
+            merged_column = _merge_tiles(column)
+            for row in range(GRID_SIZE):
+                self.grid[row][col] = merged_column[row]
