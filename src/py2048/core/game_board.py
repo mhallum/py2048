@@ -78,3 +78,9 @@ class GameBoard:
             merged_column.reverse()
             for row in range(GRID_SIZE):
                 self.grid[row][col] = merged_column[row]
+
+    def __eq__(self, other: object) -> bool:
+        """Check equality of two game boards."""
+        if not isinstance(other, GameBoard):
+            return False
+        return self.grid == other.grid
