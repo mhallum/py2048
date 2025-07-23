@@ -22,8 +22,15 @@ repos:
 
   - repo: local
     hooks:
-      - id: pytest
-        name: Run tests with pytest
-        entry: poetry run pytest --cov=src --cov-report=xml
-        language: system
-        stages: [pre-push]
+    - id: pylint
+      name: pylint
+      entry: poetry run pylint src
+      language: system
+      types: [python]
+      stages: [pre-push]
+    - id: pytest
+      name: Run pytest
+      entry: poetry run pytest --cov=py2048
+      language: system
+      types: [python]
+      stages: [pre-push]
