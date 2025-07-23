@@ -29,3 +29,8 @@ jobs:
         run: |
           export PATH="$HOME/.local/bin:$PATH"
           poetry run pytest --cov=py2048 --cov-report=xml
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
