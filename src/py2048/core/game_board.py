@@ -10,10 +10,13 @@ GRID_SIZE = 4
 class GameBoard:
     """Class representing the game board for 2048."""
 
-    def __init__(self):
-        self.grid: list[list[int]] = [[0] * GRID_SIZE for _ in range(GRID_SIZE)]
-        self._add_random_tile()
-        self._add_random_tile()
+    def __init__(self, grid: list[list[int]] | None = None):
+        if grid is not None:
+            self.grid = grid
+        else:
+            self.grid = [[0] * GRID_SIZE for _ in range(GRID_SIZE)]
+            self._add_random_tile()
+            self._add_random_tile()
 
     def _add_random_tile(self):
         if empty_tiles := [
