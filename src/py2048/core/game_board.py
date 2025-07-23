@@ -4,18 +4,23 @@
 
 import random
 
+GRID_SIZE = 4
+
 
 class GameBoard:
     """Class representing the game board for 2048."""
 
     def __init__(self):
-        self.grid: list[list[int]] = [[0] * 4 for _ in range(4)]
+        self.grid: list[list[int]] = [[0] * GRID_SIZE for _ in range(GRID_SIZE)]
         self._add_random_tile()
         self._add_random_tile()
 
     def _add_random_tile(self):
         if empty_tiles := [
-            (i, j) for i in range(4) for j in range(4) if self.grid[i][j] == 0
+            (i, j)
+            for i in range(GRID_SIZE)
+            for j in range(GRID_SIZE)
+            if self.grid[i][j] == 0
         ]:
             i, j = random.choice(empty_tiles)
             self.grid[i][j] = 2
@@ -35,5 +40,5 @@ class GameBoard:
                     skip = True
                 else:
                     merged_row.append(new_row[i])
-            merged_row.extend([0] * (4 - len(merged_row)))
+            merged_row.extend([0] * (GRID_SIZE - len(merged_row)))
             row[:] = merged_row
