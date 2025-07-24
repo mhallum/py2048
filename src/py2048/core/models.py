@@ -38,13 +38,15 @@ def _merge_tiles(tiles: list[int] | tuple[int, ...]) -> list[int] | tuple[int, .
 class GameBoard:
     """Class representing the game board for 2048."""
 
-    grid: list[list[int]]
+    grid: tuple[tuple[int, ...], ...]
 
     def __init__(self, grid: list[list[int]] | None = None):
         if grid is not None:
-            self.grid = grid
+            self.grid = tuple(tuple(row) for row in grid)
         else:
-            self.grid = [[0] * GRID_SIZE for _ in range(GRID_SIZE)]
+            self.grid = tuple(
+                tuple(0 for _ in range(GRID_SIZE)) for _ in range(GRID_SIZE)
+            )
             self._add_random_tile()
             self._add_random_tile()
 
@@ -53,7 +55,7 @@ class GameBoard:
             i, j = random.choice(positions)
             new_grid = [list(row) for row in self.grid]
             new_grid[i][j] = 2
-            self.grid = new_grid
+            self.grid = tuple(tuple(row) for row in new_grid)
 
     @property
     def height(self) -> int:
@@ -77,23 +79,21 @@ class GameBoard:
 
     def shift_left(self):
         """Shift tiles to the left."""
-        merged_rows = [_merge_tiles(row) for row in self.grid]
-        self.grid = merged_rows
+        self.grid = tuple(_merge_tiles(row) for row in self.grid)
 
     def shift_right(self):
         """Shift tiles to the right."""
-        merged_rows = [_merge_tiles(row[::-1])[::-1] for row in self.grid]
-        self.grid = merged_rows
+        self.grid = tuple(_merge_tiles(row[::-1])[::-1] for row in self.grid)
 
     def shift_up(self):
         """Shift tiles upwards."""
-        merged_rows = [_merge_tiles(row) for row in zip(*self.grid)]
-        self.grid = [list(row) for row in zip(*merged_rows)]
+        merged_rows = tuple(_merge_tiles(row) for row in zip(*self.grid))
+        self.grid = tuple(zip(*merged_rows))
 
     def shift_down(self):
         """Shift tiles downwards."""
         merged_rows = [_merge_tiles(row[::-1])[::-1] for row in zip(*self.grid)]
-        self.grid = [list(row) for row in zip(*merged_rows)]
+        self.grid = tuple(zip(*merged_rows))
 
 
 @dataclass
