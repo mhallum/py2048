@@ -5,43 +5,43 @@ from py2048.core.models import GameBoard
 
 def test_shift_board_left():
     """Test that the game board shifts tiles to the left correctly."""
-    board = GameBoard([[2, 2, 0, 0], [4, 4, 0, 0], [2, 0, 2, 0], [0, 0, 0, 0]])
+    board = GameBoard(((2, 2, 0, 0), (4, 4, 0, 0), (2, 0, 2, 0), (0, 0, 0, 0)))
     board.shift_left()
     assert board == GameBoard(
-        ([[4, 0, 0, 0], [8, 0, 0, 0], [4, 0, 0, 0], [0, 0, 0, 0]])
+        (((4, 0, 0, 0), (8, 0, 0, 0), (4, 0, 0, 0), (0, 0, 0, 0)))
     )
 
 
 def test_shift_board_left_does_not_double_merge():
     """Test that the game board does not double merge tiles."""
-    board = GameBoard([[2, 2, 2, 2], [4, 4, 4, 0], [2, 0, 2, 0], [0, 0, 0, 0]])
+    board = GameBoard(((2, 2, 2, 2), (4, 4, 4, 0), (2, 0, 2, 0), (0, 0, 0, 0)))
     board.shift_left()
-    assert board == GameBoard([[4, 4, 0, 0], [8, 4, 0, 0], [4, 0, 0, 0], [0, 0, 0, 0]])
+    assert board == GameBoard(((4, 4, 0, 0), (8, 4, 0, 0), (4, 0, 0, 0), (0, 0, 0, 0)))
 
 
 def test_shift_board_right():
     """Test that the game board shifts tiles to the right correctly."""
-    board = GameBoard([[0, 0, 2, 2], [0, 0, 4, 4], [0, 2, 0, 2], [0, 0, 0, 0]])
+    board = GameBoard(((0, 0, 2, 2), (0, 0, 4, 4), (0, 2, 0, 2), (0, 0, 0, 0)))
     board.shift_right()
-    assert board == GameBoard([[0, 0, 0, 4], [0, 0, 0, 8], [0, 0, 0, 4], [0, 0, 0, 0]])
+    assert board == GameBoard(((0, 0, 0, 4), (0, 0, 0, 8), (0, 0, 0, 4), (0, 0, 0, 0)))
 
 
 def test_shift_board_right_does_not_double_merge():
     """Test that the game board does not double merge tiles when shifting right."""
-    board = GameBoard([[2, 2, 2, 2], [0, 4, 4, 4], [0, 2, 0, 2], [0, 0, 0, 0]])
+    board = GameBoard(((2, 2, 2, 2), (0, 4, 4, 4), (0, 2, 0, 2), (0, 0, 0, 0)))
     board.shift_right()
-    assert board == GameBoard([[0, 0, 4, 4], [0, 0, 4, 8], [0, 0, 0, 4], [0, 0, 0, 0]])
+    assert board == GameBoard(((0, 0, 4, 4), (0, 0, 4, 8), (0, 0, 0, 4), (0, 0, 0, 0)))
 
 
 def test_shift_board_up():
     """Test that the game board shifts tiles up correctly."""
-    board = GameBoard([[2, 2, 2, 2], [2, 2, 0, 2], [0, 2, 2, 4], [0, 2, 0, 0]])
+    board = GameBoard(((2, 2, 2, 2), (2, 2, 0, 2), (0, 2, 2, 4), (0, 2, 0, 0)))
     board.shift_up()
-    assert board == GameBoard([[4, 4, 4, 4], [0, 4, 0, 4], [0, 0, 0, 0], [0, 0, 0, 0]])
+    assert board == GameBoard(((4, 4, 4, 4), (0, 4, 0, 4), (0, 0, 0, 0), (0, 0, 0, 0)))
 
 
 def test_shift_board_down():
     """Test that the game board shifts tiles down correctly."""
-    board = GameBoard([[0, 2, 0, 0], [2, 2, 2, 2], [2, 2, 0, 2], [0, 2, 2, 4]])
+    board = GameBoard(((0, 2, 0, 0), (2, 2, 2, 2), (2, 2, 0, 2), (0, 2, 2, 4)))
     board.shift_down()
-    assert board == GameBoard([[0, 0, 0, 0], [0, 0, 0, 0], [0, 4, 0, 4], [4, 4, 4, 4]])
+    assert board == GameBoard(((0, 0, 0, 0), (0, 0, 0, 0), (0, 4, 0, 4), (4, 4, 4, 4)))
