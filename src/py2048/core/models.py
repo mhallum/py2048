@@ -34,6 +34,16 @@ def _merge_tiles(tiles: list[int] | tuple[int, ...]) -> list[int] | tuple[int, .
         return list(merged_row)
 
 
+def spawn_tile(board: "GameBoard") -> "GameBoard":
+    """Spawn a new tile on the game board."""
+    if positions := board.empty_tile_positions:
+        i, j = random.choice(positions)
+        new_grid = [list(row) for row in board.grid]
+        new_grid[i][j] = 2
+        return GameBoard(new_grid)
+    return board
+
+
 @dataclass
 class GameBoard:
     """Class representing the game board for 2048."""
