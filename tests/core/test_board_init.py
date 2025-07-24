@@ -14,6 +14,15 @@ def test_spawn_tile_on_empty_board():
     assert filled_after_spawn == 1
 
 
+def new_test_spawn_tile_on_non_empty_board():
+    """Test that a new tile is spawned on the board on a non-empty board."""
+    board = GameBoard(grid=[[2, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]])
+    new_board = models.spawn_tile(board)
+    filled_after_spawn = sum(1 for row in new_board.grid for tile in row if tile != 0)
+    expected_n_tiles = 2
+    assert filled_after_spawn == expected_n_tiles
+
+
 def test_board_initializes_with_two_tiles():
     """Test that the game board initializes with two tiles."""
 
