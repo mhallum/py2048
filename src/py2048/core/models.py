@@ -7,6 +7,9 @@ from dataclasses import dataclass
 from typing import overload
 
 GRID_SIZE = 4
+N_ROWS = 4
+N_COLS = 4
+EMPTY_GRID = tuple(tuple(0 for _ in range(N_COLS)) for _ in range(N_ROWS))
 
 
 @overload
@@ -48,17 +51,13 @@ def spawn_tile(board: "GameBoard") -> "GameBoard":
 class GameBoard:
     """Class representing the game board for 2048."""
 
-    grid: tuple[tuple[int, ...], ...]
+    grid: tuple[tuple[int, ...], ...] = EMPTY_GRID
 
-    def __init__(self, grid: list[list[int]] | None = None):
-        if grid is not None:
+    def __init__(
+        self, grid: list[list[int]] | tuple[tuple[int, ...], ...] = EMPTY_GRID
+    ):
+        if grid != EMPTY_GRID:
             self.grid = tuple(tuple(row) for row in grid)
-        else:
-            self.grid = tuple(
-                tuple(0 for _ in range(GRID_SIZE)) for _ in range(GRID_SIZE)
-            )
-            self._add_random_tile()
-            self._add_random_tile()
 
     def _add_random_tile(self):
         if positions := self.empty_tile_positions:
