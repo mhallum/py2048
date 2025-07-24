@@ -90,7 +90,7 @@ class GameBoard:
             new_grid = [list(row) for row in self.grid]
             new_grid[i][j] = 2
             return GameBoard(tuple(tuple(row) for row in new_grid))
-        return self
+        raise ValueError("Cannot spawn tile on a full board")
 
 
 @dataclass
