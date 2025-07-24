@@ -23,12 +23,11 @@ def new_test_spawn_tile_on_non_empty_board():
     assert filled_after_spawn == expected_n_tiles
 
 
-def test_board_initializes_with_two_tiles():
-    """Test that the game board initializes with two tiles."""
-
+def test_board_initializes_with_empty_grid_by_default():
+    """Test that the game board initializes with an empty grid."""
     board = GameBoard()
     filled = sum(1 for row in board.grid for tile in row if tile != 0)
-    assert filled == EXPECTED_TILES
+    assert filled == 0
 
 
 def test_board_can_be_created_with_already_loaded_tiles():
