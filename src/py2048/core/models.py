@@ -49,14 +49,31 @@ class GameBoard:
             self._add_random_tile()
 
     def _add_random_tile(self):
-        if empty_tiles := [
+        if positions := self.empty_tile_positions:
+            i, j = random.choice(positions)
+            new_grid = [list(row) for row in self.grid]
+            new_grid[i][j] = 2
+            self.grid = new_grid
+
+    @property
+    def height(self) -> int:
+        """Get the height (number of rows) of the game board."""
+        return len(self.grid)
+
+    @property
+    def width(self) -> int:
+        """Get the width (number of columns) of the game board."""
+        return len(self.grid[0])
+
+    @property
+    def empty_tile_positions(self) -> list[tuple[int, int]]:
+        """Get the positions (row, col) of empty tiles on the board."""
+        return [
             (i, j)
-            for i in range(GRID_SIZE)
-            for j in range(GRID_SIZE)
+            for i in range(self.height)
+            for j in range(self.width)
             if self.grid[i][j] == 0
-        ]:
-            i, j = random.choice(empty_tiles)
-            self.grid[i][j] = 2
+        ]
 
     def shift_left(self):
         """Shift tiles to the left."""
