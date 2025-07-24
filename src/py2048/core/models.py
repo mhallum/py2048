@@ -52,24 +52,20 @@ class GameBoard:
 
     def shift_left(self):
         """Shift tiles to the left."""
-        for row in self.grid:
-            merged_row = self._merge_tiles(row)
-            row[:] = merged_row
+        merged_rows = [self._merge_tiles(row) for row in self.grid]
+        self.grid = merged_rows
 
     def shift_right(self):
         """Shift tiles to the right."""
-        for row in self.grid:
-            tiles = [tile for tile in row if tile != 0]
-            tiles.reverse()
-            merged_row = self._merge_tiles(tiles)
-            merged_row.reverse()
-            row[:] = merged_row
+        merged_rows = [self._merge_tiles(row[::-1])[::-1] for row in self.grid]
+        self.grid = merged_rows
 
     def shift_up(self):
         """Shift tiles upwards."""
         for col in range(GRID_SIZE):
-            column = [self.grid[row][col] for row in range(GRID_SIZE)]
-            merged_column = self._merge_tiles(column)
+            merged_column = self._merge_tiles(
+                [self.grid[row][col] for row in range(GRID_SIZE)]
+            )
             for row in range(GRID_SIZE):
                 self.grid[row][col] = merged_column[row]
 
