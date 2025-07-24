@@ -4,8 +4,34 @@
 
 import random
 from dataclasses import dataclass
+from typing import overload
 
 GRID_SIZE = 4
+
+
+@overload
+def _merge_tiles(tiles: list[int]) -> list[int]: ...
+@overload
+def _merge_tiles(tiles: tuple[int, ...]) -> tuple[int, ...]: ...
+def _merge_tiles(tiles: list[int] | tuple[int, ...]) -> list[int] | tuple[int, ...]:
+    """Merge a single row of tiles to the left."""
+    new_row = [tile for tile in tiles if tile != 0]
+    merged_row: list[int] = []
+    skip = False
+    for i, _ in enumerate(new_row):
+        if skip:
+            skip = False
+            continue
+        if i < len(new_row) - 1 and new_row[i] == new_row[i + 1]:
+            merged_row.append(new_row[i] * 2)
+            skip = True
+        else:
+            merged_row.append(new_row[i])
+    merged_row.extend([0] * (GRID_SIZE - len(merged_row)))
+    if isinstance(tiles, tuple):
+        return tuple(merged_row)
+    else:
+        return list(merged_row)
 
 
 @dataclass
@@ -32,52 +58,25 @@ class GameBoard:
             i, j = random.choice(empty_tiles)
             self.grid[i][j] = 2
 
-    @staticmethod
-    def _merge_tiles(tiles: list[int]) -> list[int]:
-        """Merge a single row of tiles to the left."""
-        new_row = [tile for tile in tiles if tile != 0]
-        merged_row: list[int] = []
-        skip = False
-        for i, _ in enumerate(new_row):
-            if skip:
-                skip = False
-                continue
-            if i < len(new_row) - 1 and new_row[i] == new_row[i + 1]:
-                merged_row.append(new_row[i] * 2)
-                skip = True
-            else:
-                merged_row.append(new_row[i])
-        merged_row.extend([0] * (GRID_SIZE - len(merged_row)))
-        return merged_row
-
     def shift_left(self):
         """Shift tiles to the left."""
-        merged_rows = [self._merge_tiles(row) for row in self.grid]
+        merged_rows = [_merge_tiles(row) for row in self.grid]
         self.grid = merged_rows
 
     def shift_right(self):
         """Shift tiles to the right."""
-        merged_rows = [self._merge_tiles(row[::-1])[::-1] for row in self.grid]
+        merged_rows = [_merge_tiles(row[::-1])[::-1] for row in self.grid]
         self.grid = merged_rows
 
     def shift_up(self):
         """Shift tiles upwards."""
-        for col in range(GRID_SIZE):
-            merged_column = self._merge_tiles(
-                [self.grid[row][col] for row in range(GRID_SIZE)]
-            )
-            for row in range(GRID_SIZE):
-                self.grid[row][col] = merged_column[row]
+        merged_rows = [_merge_tiles(row) for row in zip(*self.grid)]
+        self.grid = [list(row) for row in zip(*merged_rows)]
 
     def shift_down(self):
         """Shift tiles downwards."""
-        for col in range(GRID_SIZE):
-            column = [self.grid[row][col] for row in range(GRID_SIZE)]
-            column.reverse()
-            merged_column = self._merge_tiles(column)
-            merged_column.reverse()
-            for row in range(GRID_SIZE):
-                self.grid[row][col] = merged_column[row]
+        merged_rows = [_merge_tiles(row[::-1])[::-1] for row in zip(*self.grid)]
+        self.grid = [list(row) for row in zip(*merged_rows)]
 
 
 @dataclass
