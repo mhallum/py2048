@@ -83,6 +83,15 @@ class GameBoard:
         merged_rows = [_merge_tiles(row[::-1])[::-1] for row in zip(*self.grid)]
         return GameBoard(tuple(zip(*merged_rows)))
 
+    def spawn_tile(self) -> "GameBoard":
+        """Spawn a new tile on the board."""
+        if positions := self.empty_tile_positions:
+            i, j = random.choice(positions)
+            new_grid = [list(row) for row in self.grid]
+            new_grid[i][j] = 2
+            return GameBoard(tuple(tuple(row) for row in new_grid))
+        return self
+
 
 @dataclass
 class GameState:
