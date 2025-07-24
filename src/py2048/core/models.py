@@ -11,7 +11,7 @@ N_COLS = 4
 EMPTY_GRID = tuple(tuple(0 for _ in range(N_COLS)) for _ in range(N_ROWS))
 
 
-@dataclass
+@dataclass(frozen=True)
 class GameBoard:
     """Class representing the game board for 2048."""
 
