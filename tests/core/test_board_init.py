@@ -1,12 +1,22 @@
 """Unit tests for GameBoard initialization"""
 
+from py2048.core import models
 from py2048.core.models import GameBoard
 
 EXPECTED_TILES = 2
 
 
+def test_spawn_tile_on_empty_board():
+    """Test that a new tile is spawned on the board on an empty board."""
+    board = GameBoard(grid=[[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]])
+    new_board = models.spawn_tile(board)
+    filled_after_spawn = sum(1 for row in new_board.grid for tile in row if tile != 0)
+    assert filled_after_spawn == 1
+
+
 def test_board_initializes_with_two_tiles():
     """Test that the game board initializes with two tiles."""
+
     board = GameBoard()
     filled = sum(1 for row in board.grid for tile in row if tile != 0)
     assert filled == EXPECTED_TILES
