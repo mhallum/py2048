@@ -4,7 +4,6 @@
 
 import random
 from dataclasses import dataclass
-from typing import overload
 
 GRID_SIZE = 4
 N_ROWS = 4
@@ -12,11 +11,7 @@ N_COLS = 4
 EMPTY_GRID = tuple(tuple(0 for _ in range(N_COLS)) for _ in range(N_ROWS))
 
 
-@overload
-def _merge_tiles(tiles: list[int]) -> list[int]: ...
-@overload
-def _merge_tiles(tiles: tuple[int, ...]) -> tuple[int, ...]: ...
-def _merge_tiles(tiles: list[int] | tuple[int, ...]) -> list[int] | tuple[int, ...]:
+def _merge_tiles(tiles: tuple[int, ...]) -> tuple[int, ...]:
     """Merge a single row of tiles to the left."""
     new_row = [tile for tile in tiles if tile != 0]
     merged_row: list[int] = []
@@ -31,10 +26,7 @@ def _merge_tiles(tiles: list[int] | tuple[int, ...]) -> list[int] | tuple[int, .
         else:
             merged_row.append(new_row[i])
     merged_row.extend([0] * (GRID_SIZE - len(merged_row)))
-    if isinstance(tiles, tuple):
-        return tuple(merged_row)
-    else:
-        return list(merged_row)
+    return tuple(merged_row)
 
 
 def spawn_tile(board: "GameBoard") -> "GameBoard":
@@ -43,7 +35,7 @@ def spawn_tile(board: "GameBoard") -> "GameBoard":
         i, j = random.choice(positions)
         new_grid = [list(row) for row in board.grid]
         new_grid[i][j] = 2
-        return GameBoard(new_grid)
+        return GameBoard(tuple(tuple(row) for row in new_grid))
     return board
 
 
@@ -52,19 +44,6 @@ class GameBoard:
     """Class representing the game board for 2048."""
 
     grid: tuple[tuple[int, ...], ...] = EMPTY_GRID
-
-    def __init__(
-        self, grid: list[list[int]] | tuple[tuple[int, ...], ...] = EMPTY_GRID
-    ):
-        if grid != EMPTY_GRID:
-            self.grid = tuple(tuple(row) for row in grid)
-
-    def _add_random_tile(self):
-        if positions := self.empty_tile_positions:
-            i, j = random.choice(positions)
-            new_grid = [list(row) for row in self.grid]
-            new_grid[i][j] = 2
-            self.grid = tuple(tuple(row) for row in new_grid)
 
     @property
     def height(self) -> int:
