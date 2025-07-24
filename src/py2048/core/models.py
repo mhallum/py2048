@@ -65,23 +65,23 @@ class GameBoard:
             if self.grid[i][j] == 0
         ]
 
-    def shift_left(self):
+    def shift_left(self) -> "GameBoard":
         """Shift tiles to the left."""
-        self.grid = tuple(_merge_tiles(row) for row in self.grid)
+        return GameBoard(tuple(_merge_tiles(row) for row in self.grid))
 
     def shift_right(self):
         """Shift tiles to the right."""
-        self.grid = tuple(_merge_tiles(row[::-1])[::-1] for row in self.grid)
+        return GameBoard(tuple(_merge_tiles(row[::-1])[::-1] for row in self.grid))
 
     def shift_up(self):
         """Shift tiles upwards."""
         merged_rows = tuple(_merge_tiles(row) for row in zip(*self.grid))
-        self.grid = tuple(zip(*merged_rows))
+        return GameBoard(tuple(zip(*merged_rows)))
 
     def shift_down(self):
         """Shift tiles downwards."""
         merged_rows = [_merge_tiles(row[::-1])[::-1] for row in zip(*self.grid)]
-        self.grid = tuple(zip(*merged_rows))
+        return GameBoard(tuple(zip(*merged_rows)))
 
 
 @dataclass
