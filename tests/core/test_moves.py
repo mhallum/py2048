@@ -1,6 +1,7 @@
 """Unit tests for the core game logic, specifically for moves in the game board."""
 
 from py2048.core.models import GameBoard
+import pytest
 
 
 def test_board_can_spawn_tile():
@@ -9,6 +10,13 @@ def test_board_can_spawn_tile():
     new_board = board.spawn_tile()
     filled_after_spawn = sum(1 for row in new_board.grid for tile in row if tile != 0)
     assert filled_after_spawn == 1
+
+
+def test_raises_error_on_invalid_spawn():
+    """Test that spawning a tile on a full board raises an error."""
+    board = GameBoard(grid=((2, 2, 2, 2), (4, 4, 4, 4), (8, 8, 8, 8), (16, 16, 16, 16)))
+    with pytest.raises(Exception):
+        board.spawn_tile()
 
 
 def test_board_can_shift_left():
