@@ -11,24 +11,6 @@ N_COLS = 4
 EMPTY_GRID = tuple(tuple(0 for _ in range(N_COLS)) for _ in range(N_ROWS))
 
 
-def _merge_tiles(tiles: tuple[int, ...]) -> tuple[int, ...]:
-    """Merge a single row of tiles to the left."""
-    new_row = [tile for tile in tiles if tile != 0]
-    merged_row: list[int] = []
-    skip = False
-    for i, _ in enumerate(new_row):
-        if skip:
-            skip = False
-            continue
-        if i < len(new_row) - 1 and new_row[i] == new_row[i + 1]:
-            merged_row.append(new_row[i] * 2)
-            skip = True
-        else:
-            merged_row.append(new_row[i])
-    merged_row.extend([0] * (GRID_SIZE - len(merged_row)))
-    return tuple(merged_row)
-
-
 @dataclass
 class GameBoard:
     """Class representing the game board for 2048."""
@@ -57,20 +39,20 @@ class GameBoard:
 
     def shift_left(self) -> "GameBoard":
         """Shift tiles to the left."""
-        return GameBoard(tuple(_merge_tiles(row) for row in self.grid))
+        return GameBoard(tuple(self._merge_tiles(row) for row in self.grid))
 
     def shift_right(self):
         """Shift tiles to the right."""
-        return GameBoard(tuple(_merge_tiles(row[::-1])[::-1] for row in self.grid))
+        return GameBoard(tuple(self._merge_tiles(row[::-1])[::-1] for row in self.grid))
 
     def shift_up(self):
         """Shift tiles upwards."""
-        merged_rows = tuple(_merge_tiles(row) for row in zip(*self.grid))
+        merged_rows = tuple(self._merge_tiles(row) for row in zip(*self.grid))
         return GameBoard(tuple(zip(*merged_rows)))
 
     def shift_down(self):
         """Shift tiles downwards."""
-        merged_rows = [_merge_tiles(row[::-1])[::-1] for row in zip(*self.grid)]
+        merged_rows = [self._merge_tiles(row[::-1])[::-1] for row in zip(*self.grid)]
         return GameBoard(tuple(zip(*merged_rows)))
 
     def spawn_tile(self) -> "GameBoard":
@@ -81,6 +63,24 @@ class GameBoard:
             new_grid[i][j] = 2
             return GameBoard(tuple(tuple(row) for row in new_grid))
         raise ValueError("Cannot spawn tile on a full board")
+
+    @staticmethod
+    def _merge_tiles(tiles: tuple[int, ...]) -> tuple[int, ...]:
+        """Merge a single row of tiles to the left."""
+        new_row = [tile for tile in tiles if tile != 0]
+        merged_row: list[int] = []
+        skip = False
+        for i, _ in enumerate(new_row):
+            if skip:
+                skip = False
+                continue
+            if i < len(new_row) - 1 and new_row[i] == new_row[i + 1]:
+                merged_row.append(new_row[i] * 2)
+                skip = True
+            else:
+                merged_row.append(new_row[i])
+        merged_row.extend([0] * (GRID_SIZE - len(merged_row)))
+        return tuple(merged_row)
 
 
 @dataclass
