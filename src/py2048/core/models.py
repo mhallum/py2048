@@ -42,25 +42,6 @@ class GameBoard:
     grid: tuple[tuple[int, ...], ...] = EMPTY_GRID
 
     @cached_property
-    def height(self) -> int:
-        """Return the number of rows in the game board.
-
-        Returns:
-            int: The height of the board, i.e., the number of rows.
-        """
-
-        return len(self.grid)
-
-    @cached_property
-    def width(self) -> int:
-        """Return the number of columns in the game board.
-
-        Returns:
-            int: The width of the board, i.e., the number of columns.
-        """
-        return len(self.grid[0])
-
-    @cached_property
     def empty_tile_positions(self) -> list[tuple[int, int]]:
         """Return the positions of empty tiles on the game board.
 
