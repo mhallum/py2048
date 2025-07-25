@@ -10,6 +10,7 @@ readme = "README.md"
 packages = [{ include = "py2048", from = "src" }]
 requires-python = ">=3.13, <3.14"
 dependencies = [
+    "click (>=8.2.1,<9.0.0)"
 ]
 
 
