@@ -14,7 +14,7 @@ dependencies = [
 ]
 
 [project.scripts]
-py2048 = "py2048.front_end.cli:py2048"
+py2048 = "py2048.run:main"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]

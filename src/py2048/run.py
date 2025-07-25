@@ -1,4 +1,5 @@
-"""CLI for the Py2048 game."""
+"""Unified entry point for Py2048.
+This script allows launching the game in CLI, GUI, or Web mode."""
 
 import click
 
@@ -9,9 +10,9 @@ CONTEXT_SETTINGS = {"help_option_names": ["-h", "--help"]}
 @click.version_option(
     None, "-v", "--version", prog_name="Py2048", message="%(prog)s version %(version)s"
 )
-def py2048():
-    """Py2048 is a Python implementation of the popular 2048 sliding puzzle game."""
+def main():
+    """Launch Py2048 in CLI, GIU, or Web mode."""
 
 
 if __name__ == "__main__":
-    py2048()  # pragma: no cover
+    main()  # pragma: no cover
