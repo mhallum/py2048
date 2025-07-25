@@ -41,6 +41,12 @@ class GameBoard:
 
     grid: tuple[tuple[int, ...], ...] = EMPTY_GRID
 
+    def __post_init__(self):
+        """Validate the grid upon initialization."""
+        nrows = len(self.grid[0])
+        if not all(len(row) == nrows for row in self.grid):
+            raise ValueError("All rows in the grid must have the same length")
+
     @cached_property
     def empty_tile_positions(self) -> list[tuple[int, int]]:
         """Return the positions of empty tiles on the game board.
