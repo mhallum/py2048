@@ -35,3 +35,24 @@ class TestUnifiedEntryPoint:
         assert (
             "Launching Py2048 in CLI mode" in result.output
         )  # Placeholder for actual CLI mode message
+
+    def test_mode_selection_cli(self):
+        """Test that selecting CLI mode works correctly."""
+        runner = CliRunner()
+        result = runner.invoke(main, ["--mode", "cli"])
+        assert result.exit_code == 0
+        assert "Launching Py2048 in CLI mode" in result.output
+
+    def test_mode_selection_gui(self):
+        """Test that selecting GUI mode works correctly."""
+        runner = CliRunner()
+        result = runner.invoke(main, ["--mode", "gui"])
+        assert result.exit_code == 0
+        assert "Launching Py2048 in GUI mode (Coming soon)" in result.output
+
+    def test_mode_selection_web(self):
+        """Test that selecting Web mode works correctly."""
+        runner = CliRunner()
+        result = runner.invoke(main, ["--mode", "web"])
+        assert result.exit_code == 0
+        assert "Launching Py2048 in Web mode (Coming soon)" in result.output

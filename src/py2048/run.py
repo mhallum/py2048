@@ -41,8 +41,6 @@ def main(mode: Literal["cli", "gui", "web"] = "cli") -> None:
         case Mode.WEB:
             click.echo("Launching Py2048 in Web mode (Coming soon)")
             # call_web()
-        case _:
-            click.echo("Invalid mode selected.")
 
 
 if __name__ == "__main__":
