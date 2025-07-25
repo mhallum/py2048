@@ -87,10 +87,4 @@ class GameBoard:
 class GameState:
     """Class representing the state of the game."""
 
-    board: GameBoard
-
-    def __init__(self, board: GameBoard | None = None):
-        if board is not None:
-            self.board = board
-        else:
-            self.board = GameBoard()
+    board: GameBoard = GameBoard()
