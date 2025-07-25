@@ -73,9 +73,9 @@ class GameBoard:
 
         return [
             (i, j)
-            for i in range(self.height)
-            for j in range(self.width)
-            if self.grid[i][j] == 0
+            for i, row in enumerate(self.grid)
+            for j, tile in enumerate(row)
+            if tile == 0
         ]
 
     def shift_left(self) -> "GameBoard":
