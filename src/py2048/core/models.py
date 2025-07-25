@@ -164,18 +164,18 @@ class GameBoard:
         Returns:
             tuple[int, ...]: The merged and left-aligned row, with zeros filling the rest.
         """
-        new_row = [tile for tile in tiles if tile != 0]
+        non_zeros = [tile for tile in tiles if tile != 0]
         merged_row: list[int] = []
-        skip = False
-        for i, _ in enumerate(new_row):
-            if skip:
-                skip = False
+        skip_next_tile = False
+        for i, tile in enumerate(non_zeros):
+            if skip_next_tile:  # Skip the next tile if it was already merged
+                skip_next_tile = False
                 continue
-            if i < len(new_row) - 1 and new_row[i] == new_row[i + 1]:
-                merged_row.append(new_row[i] * 2)
-                skip = True
-            else:
-                merged_row.append(new_row[i])
+            if i < len(non_zeros) - 1 and tile == non_zeros[i + 1]:  # Merge tiles
+                merged_row.append(tile * 2)
+                skip_next_tile = True
+            else:  # Just add the tile if it wasn't merged
+                merged_row.append(tile)
         merged_row.extend([0] * (len(tiles) - len(merged_row)))
         return tuple(merged_row)
 
