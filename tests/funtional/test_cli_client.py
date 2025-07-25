@@ -13,3 +13,10 @@ class TestCli:
         result = runner.invoke(py2048, ["--help"])
         assert result.exit_code == 0
         assert "Usage: py2048" in result.output
+
+    def test_py2048_has_short_help_command(self):
+        """Test that typing 'py2048 -h' shows the help message."""
+        runner = CliRunner()
+        result = runner.invoke(py2048, ["-h"])
+        assert result.exit_code == 0
+        assert "Usage: py2048" in result.output
