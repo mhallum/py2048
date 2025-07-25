@@ -16,6 +16,7 @@ Constants:
 
 # pylint: disable=too-few-public-methods
 
+from functools import cached_property
 import random
 from dataclasses import dataclass
 
@@ -40,7 +41,7 @@ class GameBoard:
 
     grid: tuple[tuple[int, ...], ...] = EMPTY_GRID
 
-    @property
+    @cached_property
     def height(self) -> int:
         """Return the number of rows in the game board.
 
@@ -50,7 +51,7 @@ class GameBoard:
 
         return len(self.grid)
 
-    @property
+    @cached_property
     def width(self) -> int:
         """Return the number of columns in the game board.
 
@@ -59,7 +60,7 @@ class GameBoard:
         """
         return len(self.grid[0])
 
-    @property
+    @cached_property
     def empty_tile_positions(self) -> list[tuple[int, int]]:
         """Return the positions of empty tiles on the game board.
 
