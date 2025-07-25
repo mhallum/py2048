@@ -5,7 +5,6 @@
 import random
 from dataclasses import dataclass
 
-GRID_SIZE = 4
 N_ROWS = 4
 N_COLS = 4
 EMPTY_GRID = tuple(tuple(0 for _ in range(N_COLS)) for _ in range(N_ROWS))
@@ -79,7 +78,7 @@ class GameBoard:
                 skip = True
             else:
                 merged_row.append(new_row[i])
-        merged_row.extend([0] * (GRID_SIZE - len(merged_row)))
+        merged_row.extend([0] * (len(tiles) - len(merged_row)))
         return tuple(merged_row)
 
 
