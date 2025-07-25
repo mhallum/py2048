@@ -1,3 +1,5 @@
+"""Test cases for the GameState class in the py2048 game."""
+
 from py2048.core import models
 
 
