@@ -13,6 +13,8 @@ dependencies = [
     "click (>=8.2.1,<9.0.0)"
 ]
 
+[project.scripts]
+py2048 = "py2048.front_end.cli:py2048"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
