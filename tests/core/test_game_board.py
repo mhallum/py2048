@@ -19,6 +19,12 @@ def test_board_can_be_created_with_already_loaded_tiles():
     assert filled == len([tile for row in board.grid for tile in row if tile != 0])
 
 
+def test_board_will_not_initialize_with_invalid_grid():
+    """Test that the game board raises an error when initialized with inconsistant row lengths."""
+    with pytest.raises(ValueError):
+        GameBoard(grid=((2, 0, 2), (0, 0, 0, 0), (0, 2, 0, 2), (0, 0, 0, 0)))
+
+
 def test_board_equality():
     """Test that two game boards with the same grid are equal."""
     board1 = GameBoard(grid=((2, 0, 2, 0), (0, 0, 0, 0), (0, 2, 0, 2), (0, 0, 0, 0)))
