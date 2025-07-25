@@ -26,5 +26,5 @@ class TestCli:
         runner = CliRunner()
         result = runner.invoke(py2048, ["--version"])
         assert result.exit_code == 0
-        assert "py2048" in result.output
+        assert "Py2048" in result.output
         assert "version" in result.output
