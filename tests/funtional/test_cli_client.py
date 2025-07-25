@@ -28,3 +28,11 @@ class TestCli:
         assert result.exit_code == 0
         assert "Py2048" in result.output
         assert "version" in result.output
+
+    def test_py2048_has_short_version_option(self):
+        """Test that typing 'py2048 -v' shows the version."""
+        runner = CliRunner()
+        result = runner.invoke(py2048, ["-v"])
+        assert result.exit_code == 0
+        assert "Py2048" in result.output
+        assert "version" in result.output
