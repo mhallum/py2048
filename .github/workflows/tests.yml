@@ -34,6 +34,7 @@ jobs:
         run: |
           ls -lah
           cat coverage.xml || echo "coverage.xml not found"
+          cat coverage.xml  # debug: confirm it's not empty
 
 
       - name: Upload coverage reports to Codecov
