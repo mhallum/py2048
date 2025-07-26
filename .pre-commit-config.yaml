@@ -10,7 +10,6 @@ repos:
     rev: v1.17.0
     hooks:
       - id: mypy
-        always_run: true
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v5.0.0
@@ -24,11 +23,12 @@ repos:
     hooks:
     - id: pylint
       name: pylint
-      entry: poetry run pylint src tests
+      entry: poetry run pylint src tests --fail-under=10.0
       language: system
       types: [python]
       stages: [pre-push]
       always_run: true
+      pass_filenames: false
     - id: pytest
       name: Run pytest
       entry: poetry run pytest
@@ -36,9 +36,4 @@ repos:
       types: [python]
       stages: [pre-push]
       always_run: true
-
-  # - repo: https://github.com/gtkacz/coverage-pre-commit
-  #   rev: v0.1.1
-  #   hooks:
-  #   -   id: coverage-pre-commit
-  #       args: [--provider=pytest, --fail-under=100, --extra-dependencies=pytest-xdist]
+      pass_filenames: false
