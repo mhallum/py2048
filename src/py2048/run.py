@@ -6,6 +6,10 @@ from enum import Enum
 
 import click
 
+import py2048.interfaces.cli.main as cli_main
+import py2048.interfaces.gui.main as gui_main
+import py2048.interfaces.web.main as web_main
+
 
 class Mode(str, Enum):
     """Enumeration for game modes."""
@@ -33,14 +37,11 @@ def main(mode: Literal["cli", "gui", "web"] = "cli") -> None:
     """Launch Py2048 in CLI, GUI, or Web mode."""
     match Mode(mode.lower()):
         case Mode.CLI:
-            click.echo("Launching Py2048 in CLI mode")
-            # call_cli()
+            cli_main.run_cli()
         case Mode.GUI:
-            click.echo("Launching Py2048 in GUI mode (Coming soon)")
-            # call_gui()
+            gui_main.run_gui()
         case Mode.WEB:
-            click.echo("Launching Py2048 in Web mode (Coming soon)")
-            # call_web()
+            web_main.run_web()
 
 
 if __name__ == "__main__":

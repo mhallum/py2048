@@ -28,3 +28,19 @@ ruff = "^0.12.4"
 mypy = "^1.17.0"
 pre-commit = "^4.2.0"
 pytest-cov = "^6.2.1"
+
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_functions = ["test_*"]
+
+[tool.coverage.run]
+source = ["py2048"]
+
+[tool.coverage.report]
+show_missing = true
+exclude_lines = [
+    "pragma: no cover",
+    "if __name__ == .__main__.:"
+]
