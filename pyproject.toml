@@ -34,13 +34,3 @@ pytest-cov = "^6.2.1"
 testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_functions = ["test_*"]
-
-[tool.coverage.run]
-source = ["py2048"]
-
-[tool.coverage.report]
-show_missing = true
-exclude_lines = [
-    "pragma: no cover",
-    "if __name__ == .__main__.:"
-]
