@@ -37,6 +37,12 @@ def test_board_will_not_initialize_with_invalid_grid():
         GameBoard(grid=((2, 0, 2), (0, 0, 0, 0), (0, 2, 0, 2), (0, 0, 0, 0)))
 
 
+def test_board_will_not_initialize_with_invalid_tile_values():
+    """Test that the game board raises an error when initialized with invalid tile values."""
+    with pytest.raises(ValueError):
+        GameBoard(grid=((2, 0, 2, 0), (0, 0, 0, 0), (0, 2, 1, 2), (0, 0, 0, 0)))
+
+
 def test_board_equality():
     """Test that two game boards with the same grid are equal."""
     board1 = GameBoard(grid=((2, 0, 2, 0), (0, 0, 0, 0), (0, 2, 0, 2), (0, 0, 0, 0)))
@@ -47,7 +53,7 @@ def test_board_equality():
 def test_board_inequality():
     """Test that two game boards with different grids are not equal."""
     board1 = GameBoard(grid=((2, 0, 2, 0), (0, 0, 0, 0), (0, 2, 0, 2), (0, 0, 0, 0)))
-    board2 = GameBoard(grid=((2, 0, 2, 0), (0, 0, 1, 0), (0, 2, 0, 2), (0, 0, 0, 0)))
+    board2 = GameBoard(grid=((2, 0, 2, 0), (0, 0, 4, 0), (0, 2, 0, 2), (0, 0, 0, 0)))
     assert board1 != board2
 
 

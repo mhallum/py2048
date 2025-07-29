@@ -85,9 +85,15 @@ class GameBoard:
 
     def __post_init__(self):
         """Validate the grid upon initialization."""
+
+        # validate shape
         nrows = len(self.grid[0])
         if not all(len(row) == nrows for row in self.grid):
             raise ValueError("All rows in the grid must have the same length")
+
+        # validate values
+        if not all(value % 2 == 0 for value in self.tile_values):
+            raise ValueError("All tile values must be even integers (0 or greater)")
 
     @cached_property
     def empty_tile_positions(self) -> list[tuple[int, int]]:
