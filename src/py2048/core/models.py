@@ -16,6 +16,7 @@ Constants:
 
 # pylint: disable=too-few-public-methods
 
+from enum import Enum
 from functools import cached_property
 import random
 from dataclasses import dataclass
@@ -25,6 +26,15 @@ N_COLS = 4
 EMPTY_GRID: tuple[tuple[int, ...], ...] = tuple(
     tuple(0 for _ in range(N_COLS)) for _ in range(N_ROWS)
 )
+
+
+class MoveDirection(Enum):
+    """Enum representing the possible move directions in the game."""
+
+    LEFT = "left"
+    RIGHT = "right"
+    UP = "up"
+    DOWN = "down"
 
 
 def determine_score_from_shifted_board(
@@ -240,8 +250,46 @@ class GameBoard:
         return tuple(merged_row)
 
 
-@dataclass
+@dataclass(frozen=True)
 class GameState:
-    """Class representing the state of the game."""
+    """Class representing the state of the 2048 game.
+
+    Attributes:
+        board (GameBoard): The current state of the game board.
+        score (int): The current score of the game.
+
+    Properties:
+        possible_moves (list[MoveDirection]): Returns a list of directions where moves are possible,
+            determined by checking if shifting the board in any direction results in a change.
+        is_over (bool): Indicates whether the game is over, which occurs when no moves are possible.
+    """
 
     board: GameBoard = GameBoard()
+    score: int = 0
+
+    @cached_property
+    def possible_moves(self) -> list[MoveDirection]:
+        """Return a list of possible moves based on the current board state.
+
+        Checks if the board can be shifted in any direction (left, right, up, down)
+        by attempting to shift and checking if the resulting board is different.
+
+        Returns:
+            list[MoveDirection]: A list of directions where moves are possible.
+        """
+        possible_moves: list[MoveDirection] = []
+        for direction in MoveDirection:
+            if getattr(self.board, f"shift_{direction.value}")() != self.board:
+                possible_moves.append(direction)
+        return possible_moves
+
+    @cached_property
+    def is_over(self) -> bool:
+        """Check if the game is over.
+
+        The game is considered over if there are no possible moves left.
+
+        Returns:
+            bool: True if the game is over, False otherwise.
+        """
+        return not self.possible_moves
