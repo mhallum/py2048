@@ -27,6 +27,48 @@ EMPTY_GRID: tuple[tuple[int, ...], ...] = tuple(
 )
 
 
+def determine_score_from_shifted_board(
+    before_board: "GameBoard", shifted_board: "GameBoard"
+) -> int:
+    """Calculate the score gained from merging tiles during a move.
+
+    Compares the tile counts between the board states before and after a move.
+    Assumes merges only occur between identical tiles (2048 rules), and merged
+    values must be >= 4 to contribute to score.
+
+    Args:
+        before_board (GameBoard): The game board before the move.
+        shifted_board (GameBoard): The game board after the move.
+
+    Returns:
+        int: The score gained from the move, based on merged tiles.
+    """
+
+    before_values = before_board.tile_values
+    after_values = shifted_board.tile_values
+
+    # Consider all tile values that appeared in either board
+    all_tile_values = sorted(before_values | after_values, reverse=True)
+
+    score = 0
+    merged_tile_buffer = 0  # Tracks how many source tiles were consumed by merges
+
+    for value in all_tile_values:
+        before_count = before_board.get_tile_count(value) - merged_tile_buffer
+        after_count = shifted_board.get_tile_count(value)
+
+        if value >= 4 and after_count > before_count:  # pylint: disable=magic-value-comparison
+            # If the tile count increased, it means tiles were merged
+            # and the score should be updated accordingly
+            score += (after_count - before_count) * value
+            # Each new tile of this value comes from two merged tiles
+            merged_tile_buffer = (after_count - before_count) * 2
+        else:
+            # If the tile count did not increase, tiles with value value/2 did not merge
+            merged_tile_buffer = 0
+    return score
+
+
 @dataclass(frozen=True)
 class GameBoard:
     """Immutable representation of a 2048 game board.
@@ -64,6 +106,31 @@ class GameBoard:
             for j, tile in enumerate(row)
             if tile == 0
         ]
+
+    @cached_property
+    def tile_values(self) -> set[int]:
+        """Return a set of all non-zero tile values on the board.
+
+        This property iterates through the grid and collects all unique non-zero
+        tile values, which can be useful for game logic that depends on tile values.
+
+        Returns:
+            set[int]: A set of unique non-zero tile values present on the board.
+        """
+        return {tile for row in self.grid for tile in row if tile != 0}
+
+    def get_tile_count(self, tile_value: int) -> int:
+        """Return the count of a specific tile value on the board.
+
+        This method counts how many times a given tile value appears in the grid.
+
+        Args:
+            tile_value (int): The value of the tile to count.
+
+        Returns:
+            int: The number of tiles with the specified value on the board.
+        """
+        return sum(tile == tile_value for row in self.grid for tile in row)
 
     def shift_left(self) -> "GameBoard":
         """Return a new GameBoard with all rows shifted left.
@@ -149,7 +216,7 @@ class GameBoard:
             tiles (tuple[int, ...]): A single row or column of tile values.
 
         Returns:
-            tuple[int, ...]: The merged and left-aligned row, with zeros filling the rest.
+            tuple[int, ...]: The merged row after applying 2048 merge rules.
         """
         non_zeros = [tile for tile in tiles if tile != 0]
         merged_row: list[int] = []

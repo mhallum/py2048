@@ -2,7 +2,19 @@
 
 import pytest
 
-from py2048.core.models import GameBoard
+from py2048.core.models import GameBoard, determine_score_from_shifted_board
+
+
+def test_determine_score_from_shifted_board_helper_function():
+    """Test score calculation from a shifted board."""
+    before_board = GameBoard(
+        grid=((2, 2, 0, 0), (0, 0, 0, 0), (0, 0, 0, 0), (0, 0, 0, 0))
+    )
+    shifted_board = GameBoard(
+        grid=((4, 0, 0, 0), (0, 0, 0, 0), (0, 0, 0, 0), (0, 0, 0, 0))
+    )
+    score = determine_score_from_shifted_board(before_board, shifted_board)
+    assert score == 4  # pylint: disable=magic-value-comparison
 
 
 def test_board_initializes_with_empty_grid_by_default():
@@ -84,3 +96,18 @@ def test_board_can_shift_down():
     assert board.shift_down() == GameBoard(
         ((0, 0, 0, 0), (0, 0, 0, 0), (0, 4, 0, 4), (4, 4, 4, 4))
     )
+
+
+def test_board_can_get_all_tile_values():
+    """Test that the game board can retrieve all tile values."""
+    board = GameBoard(((2, 0, 2, 0), (0, 0, 4, 0), (0, 2, 0, 2), (0, 0, 16, 0)))
+    assert board.tile_values == {2, 4, 16}
+
+
+def test_board_can_get_tile_count():
+    """Test that the game board can count tiles of a specific value."""
+    board = GameBoard(((2, 0, 2, 0), (0, 0, 0, 0), (0, 2, 0, 2), (0, 0, 0, 0)))
+    count_2 = board.get_tile_count(2)
+    count_4 = board.get_tile_count(4)
+    assert count_2 == 4  # pylint: disable=magic-value-comparison
+    assert count_4 == 0
