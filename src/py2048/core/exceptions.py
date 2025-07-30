@@ -7,3 +7,7 @@ class InvalidGameBoard(Exception):
 
 class SpawnTileError(Exception):
     """Raised when a tile cannot be spawned on the game board."""
+
+
+class InvalidMove(Exception):
+    """Raised when an invalid move is attempted on the game board."""
