@@ -1,4 +1,10 @@
-"""Test cases for the GameState class in the py2048 game."""
+"""Unit tests for the GameState class in py2048.core.models.
+
+Tests included:
+- Initialization of GameState with a GameBoard.
+- Listing possible moves from a given board state.
+- Checking if the game is over based on the board configuration.
+"""
 
 from py2048.core import models
 
