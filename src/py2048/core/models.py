@@ -20,6 +20,8 @@ from enum import Enum
 from functools import cached_property
 import random
 from dataclasses import dataclass
+from py2048.core import validators
+from py2048.core.exceptions import SpawnTileError
 
 N_ROWS = 4
 N_COLS = 4
@@ -95,15 +97,8 @@ class GameBoard:
 
     def __post_init__(self):
         """Validate the grid upon initialization."""
-
-        # validate shape
-        nrows = len(self.grid[0])
-        if not all(len(row) == nrows for row in self.grid):
-            raise ValueError("All rows in the grid must have the same length")
-
-        # validate values
-        if not all(value % 2 == 0 for value in self.tile_values):
-            raise ValueError("All tile values must be even integers (0 or greater)")
+        validators.validate_game_board_shape(self)
+        validators.validate_game_board_tile_values(self)
 
     @cached_property
     def empty_tile_positions(self) -> list[tuple[int, int]]:
@@ -206,7 +201,7 @@ class GameBoard:
             GameBoard: A new board instance with the tile added.
 
         Raises:
-            ValueError: If there are no empty positions available to spawn a tile.
+            SpawnTileError: If there are no empty positions available to spawn a tile.
 
         Notes:
             This implementation always spawns a tile with value 2. For authentic 2048 behavior,
@@ -219,7 +214,7 @@ class GameBoard:
             new_grid = [list(row) for row in self.grid]
             new_grid[i][j] = 2
             return GameBoard(tuple(tuple(row) for row in new_grid))
-        raise ValueError("Cannot spawn tile on a full board")
+        raise SpawnTileError("Cannot spawn tile on a full board")
 
     @staticmethod
     def _merge_tiles(tiles: tuple[int, ...]) -> tuple[int, ...]:

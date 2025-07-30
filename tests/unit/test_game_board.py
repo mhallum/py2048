@@ -1,8 +1,22 @@
-"""Unit tests for the core game logic, specifically for moves in the game board."""
+"""Unit tests for the core 2048 game logic.
+
+This module tests the behavior and correctness of the GameBoard class and related
+functions in the `py2048.core` package. It covers:
+
+- Board initialization and validation (e.g., invalid tile values, inconsistent row lengths)
+- Tile spawning and game-over conditions
+- Tile shifting logic in all four directions (left, right, up, down)
+- Score calculation using the `determine_score_from_shifted_board` helper
+- Utility methods such as tile value collection and tile counting
+
+Each test ensures that the core rules of the 2048 game are faithfully enforced
+and that invalid board states are correctly rejected.
+"""
 
 import pytest
 
 from py2048.core.models import GameBoard, determine_score_from_shifted_board
+from py2048.core.exceptions import InvalidGameBoard, SpawnTileError
 
 
 def test_determine_score_from_shifted_board_helper_function():
@@ -14,7 +28,13 @@ def test_determine_score_from_shifted_board_helper_function():
         grid=((4, 0, 0, 0), (0, 0, 0, 0), (0, 0, 0, 0), (0, 0, 0, 0))
     )
     score = determine_score_from_shifted_board(before_board, shifted_board)
-    assert score == 4  # pylint: disable=magic-value-comparison
+    expected_score = 4  # 2 + 2 from the merge
+    assert score == expected_score
+
+
+# ============================================================================
+# Game Board Initialization Tests
+# ============================================================================
 
 
 def test_board_initializes_with_empty_grid_by_default():
@@ -31,22 +51,61 @@ def test_board_can_be_created_with_already_loaded_tiles():
     assert filled == len([tile for row in board.grid for tile in row if tile != 0])
 
 
-def test_board_will_not_initialize_with_invalid_grid():
-    """Test that the game board raises an error when initialized with inconsistant row lengths."""
-    with pytest.raises(ValueError):
+def test_board_with_inconsistent_row_lengths_raises_invalid_game_board_exception():
+    """Test that initializing a GameBoard with inconsistent row lengths raises InvalidGameBoard.
+
+    The GameBoard should enforce that all rows in the grid have equal length.
+    If any row differs, an InvalidGameBoard exception should be raised.
+    """
+
+    with pytest.raises(InvalidGameBoard):
         GameBoard(grid=((2, 0, 2), (0, 0, 0, 0), (0, 2, 0, 2), (0, 0, 0, 0)))
 
 
-def test_board_will_not_initialize_with_invalid_tile_values():
-    """Test that the game board raises an error when initialized with invalid tile values."""
-    with pytest.raises(ValueError):
-        GameBoard(grid=((2, 0, 2, 0), (0, 0, 0, 0), (0, 2, 1, 2), (0, 0, 0, 0)))
+@pytest.mark.parametrize(
+    "grid",
+    [
+        (
+            (2, 0, 2, 0),
+            (0, 0, 0, 0),
+            (6, 2, 1, 2),  # Invalid values: 6 and 1
+            (0, 0, 0, 0),
+        ),
+        (
+            (2, -2, 2, 0),  # Invalid value: -2
+            (0, 0, 0, 0),
+            (0, 2, 0, 2),
+            (0, 0, 0, 0),
+        ),
+        (
+            (2, 4, 2, 0),
+            (0, 0, 0, 0),
+            (0, 2, 7, 2),  # Invalid value: 7
+            (0, 0, 0, 0),
+        ),
+    ],
+)
+def test_board_rejects_invalid_tile_values(grid: tuple[tuple[int, ...]]):
+    """Test that GameBoard rejects grids with invalid tile values.
+
+    The GameBoard should only allow valid 2048 tile values (0 or powers of 2).
+    Any value not in the allowed set (e.g., 1, 6, etc.) should trigger an
+    InvalidGameBoard exception.
+    """
+    with pytest.raises(InvalidGameBoard):
+        GameBoard(grid=grid)
+
+
+# ============================================================================
+# Game Board Functionality Tests
+# ============================================================================
 
 
 def test_board_equality():
     """Test that two game boards with the same grid are equal."""
-    board1 = GameBoard(grid=((2, 0, 2, 0), (0, 0, 0, 0), (0, 2, 0, 2), (0, 0, 0, 0)))
-    board2 = GameBoard(grid=((2, 0, 2, 0), (0, 0, 0, 0), (0, 2, 0, 2), (0, 0, 0, 0)))
+    grid = ((2, 0, 2, 0), (0, 0, 0, 0), (0, 2, 0, 2), (0, 0, 0, 0))
+    board1 = GameBoard(grid=grid)
+    board2 = GameBoard(grid=grid)
     assert board1 == board2
 
 
@@ -68,7 +127,7 @@ def test_board_can_spawn_tile():
 def test_raises_error_on_invalid_spawn():
     """Test that spawning a tile on a full board raises an error."""
     board = GameBoard(grid=((2, 2, 2, 2), (4, 4, 4, 4), (8, 8, 8, 8), (16, 16, 16, 16)))
-    with pytest.raises(Exception):
+    with pytest.raises(SpawnTileError):
         board.spawn_tile()
 
 
@@ -114,6 +173,8 @@ def test_board_can_get_tile_count():
     """Test that the game board can count tiles of a specific value."""
     board = GameBoard(((2, 0, 2, 0), (0, 0, 0, 0), (0, 2, 0, 2), (0, 0, 0, 0)))
     count_2 = board.get_tile_count(2)
+    expected_count_2 = 4
     count_4 = board.get_tile_count(4)
-    assert count_2 == 4  # pylint: disable=magic-value-comparison
-    assert count_4 == 0
+    expected_count_4 = 0
+    assert count_2 == expected_count_2
+    assert count_4 == expected_count_4
