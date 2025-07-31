@@ -1,6 +1,7 @@
 """Unit tests for the main Game model in the py2048 game."""
 
 import pytest
+
 from py2048.core import models
 from py2048.core.exceptions import InvalidMove
 

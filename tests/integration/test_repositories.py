@@ -3,6 +3,7 @@
 # pylint: disable=too-few-public-methods
 
 import pytest
+
 from py2048.adapters.repositories import InMemoryGameRepository
 from py2048.core.models import Py2048Game
 

@@ -16,12 +16,13 @@ Constants:
 
 # pylint: disable=too-few-public-methods
 
-from enum import Enum
-from functools import cached_property
 import random
 from dataclasses import dataclass
-from py2048.core import validators
-from py2048.core.exceptions import SpawnTileError, InvalidMove
+from enum import Enum
+from functools import cached_property
+
+from py2048.core import events, validators
+from py2048.core.exceptions import InvalidMove, SpawnTileError
 
 N_ROWS = 4
 N_COLS = 4
@@ -344,6 +345,7 @@ class Py2048Game:
         self.game_id: str = game_id
         self.state: GameState = state
         self.moves: list[Move] = moves if moves is not None else []
+        self.events: list[events.Event] = []
 
     def __hash__(self) -> int:
         """Return a hash of the game instance based on its ID."""
@@ -386,7 +388,9 @@ class Py2048Game:
         board = board.spawn_tile()  # Spawn the first tile
         board = board.spawn_tile()  # Spawn the second tile
         state = GameState(board=board, score=0)
-        return cls(game_id=game_id, state=state, moves=[])
+        new_game = cls(game_id=game_id, state=state, moves=[])
+        new_game.events.append(events.NewGameStarted(game_id=game_id))
+        return new_game
 
     def move(self, direction: MoveDirection) -> None:
         """Perform a move in the specified direction and update the game state.

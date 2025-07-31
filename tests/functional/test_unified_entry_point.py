@@ -7,8 +7,10 @@ These tests verify that the correct interface is launched based on the
 # pylint: disable=magic-value-comparison
 
 from unittest.mock import patch
-from click.testing import CliRunner
+
 import pytest
+from click.testing import CliRunner
+
 from py2048.run import main
 
 

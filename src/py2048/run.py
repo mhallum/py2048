@@ -1,8 +1,8 @@
 """Unified entry point for Py2048.
 This script allows launching the game in CLI, GUI, or Web mode."""
 
-from typing import Literal
 from enum import Enum
+from typing import Literal
 
 import click
 

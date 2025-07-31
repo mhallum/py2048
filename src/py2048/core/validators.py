@@ -2,7 +2,6 @@
 
 from typing import TYPE_CHECKING
 
-
 from py2048.core.exceptions import InvalidGameBoard
 
 if TYPE_CHECKING:

@@ -15,8 +15,8 @@ and that invalid board states are correctly rejected.
 
 import pytest
 
-from py2048.core.models import GameBoard, determine_score_from_shifted_board
 from py2048.core.exceptions import InvalidGameBoard, SpawnTileError
+from py2048.core.models import GameBoard, determine_score_from_shifted_board
 
 
 def test_determine_score_from_shifted_board_helper_function():
