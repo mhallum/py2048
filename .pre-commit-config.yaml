@@ -3,8 +3,14 @@ repos:
     rev: v0.12.7
     hooks:
       - id: ruff-check
+        name: lint with ruff
         types: [python]
+      - id: ruff-check
+        name: sort impports with ruff
+        types: [python]
+        args: ["--select", "I", "--fix"]
       - id: ruff-format
+        name: format with ruff
         types: [python]
 
   - repo: https://github.com/pre-commit/mirrors-mypy

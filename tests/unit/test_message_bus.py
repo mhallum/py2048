@@ -1,17 +1,19 @@
 """Test suite for edge cases in the message bus."""
 
 from dataclasses import dataclass
+
 import pytest
+
 from py2048.bootstrap import bootstrap
 from py2048.core import commands, events
 from py2048.service_layer import unit_of_work
 from py2048.service_layer.messagebus import (
+    HANDLING_COMMAND_DESCRIPTION,
+    HANDLING_EVENT_DESCRIPTION,
     MISSING_HANDLER_DESCRIPTION,
-    UNKNOWN_MESSAGE_TYPE_DESCRIPTION,
     UNEXPECTED_ERROR_DESCRIPTION,
     UNEXPECTED_ERROR_WHILE_COLLECTING_EVENTS_DESCRIPTION,
-    HANDLING_EVENT_DESCRIPTION,
-    HANDLING_COMMAND_DESCRIPTION,
+    UNKNOWN_MESSAGE_TYPE_DESCRIPTION,
 )
 
 # pylint: disable=too-few-public-methods
