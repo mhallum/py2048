@@ -1,3 +1,5 @@
+"""pytest configuration file for the py2048 project."""
+
 import pytest
 
 from py2048.core import models
