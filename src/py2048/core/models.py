@@ -31,7 +31,7 @@ EMPTY_GRID: tuple[tuple[int, ...], ...] = tuple(
 )
 
 
-class MoveDirection(Enum):
+class MoveDirection(str, Enum):
     """Enum representing the possible move directions in the game."""
 
     LEFT = "left"
