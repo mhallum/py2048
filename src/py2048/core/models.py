@@ -16,10 +16,10 @@ Constants:
 
 # pylint: disable=too-few-public-methods
 
-import random
 from dataclasses import dataclass
 from enum import Enum
 from functools import cached_property
+from random import Random
 
 from py2048.core import events, validators
 from py2048.core.exceptions import InvalidMove, SpawnTileError
@@ -29,6 +29,9 @@ N_COLS = 4
 EMPTY_GRID: tuple[tuple[int, ...], ...] = tuple(
     tuple(0 for _ in range(N_COLS)) for _ in range(N_ROWS)
 )
+SPAWN_VALUE_4_WEIGHT = 0.1  # Probability of spawning a 4 instead of a 2
+SPAWN_TILE_VALUES = [2, 4]
+SPAWN_TILE_WEIGHTS = [0.9, 0.1]
 
 
 class MoveDirection(str, Enum):
@@ -193,27 +196,25 @@ class GameBoard:
         merged_rows = [self._merge_tiles(row[::-1])[::-1] for row in zip(*self.grid)]
         return GameBoard(tuple(zip(*merged_rows)))
 
-    def spawn_tile(self) -> "GameBoard":
+    def spawn_tile(self, rng: Random = Random()) -> "GameBoard":
         """Return a new GameBoard with a new tile (2) spawned in an empty position.
 
-        A random empty tile is chosen and assigned the value 2.
+        A random empty tile is chosen and assigned the value 2 or 4 with ~10%
+        probability of it being 4.
 
         Returns:
             GameBoard: A new board instance with the tile added.
 
         Raises:
             SpawnTileError: If there are no empty positions available to spawn a tile.
-
-        Notes:
-            This implementation always spawns a tile with value 2. For authentic 2048 behavior,
-            you may optionally spawn a 4 with ~10% probability. This will be implemented
-            in a future version.
         """
 
         if positions := self.empty_tile_positions:
-            i, j = random.choice(positions)
+            i, j = rng.choice(positions)
             new_grid = [list(row) for row in self.grid]
-            new_grid[i][j] = 2
+            new_grid[i][j] = rng.choices(SPAWN_TILE_VALUES, weights=SPAWN_TILE_WEIGHTS)[
+                0
+            ]
             return GameBoard(tuple(tuple(row) for row in new_grid))
         raise SpawnTileError("Cannot spawn tile on a full board")
 
@@ -335,7 +336,12 @@ class Py2048Game:
             from the history. Raises an error if no moves have been made.
     """
 
-    def __init__(self, game_id: str, state: GameState, moves: list[Move] | None = None):
+    def __init__(
+        self,
+        game_id: str,
+        state: GameState,
+        moves: list[Move] | None = None,
+    ):
         """Initialize the game model with a given state and an optional move history.
 
         Args:
@@ -370,7 +376,7 @@ class Py2048Game:
         return self.state.is_over
 
     @classmethod
-    def create_new_game(cls, game_id: str) -> "Py2048Game":
+    def create_new_game(cls, game_id: str, rng: Random = Random()) -> "Py2048Game":
         """Creates and returns a new game.
 
         This method initializes an empty game board, spawns two tiles at random positions,
@@ -379,20 +385,20 @@ class Py2048Game:
 
         Args:
             game_id (str): The unique identifier for the new game.
+            rng (Random): Random number generator used for spawning initial tiles.
 
         Returns:
             Game: A new game instance with two tiles spawned and score set to zero.
         """
-
         board = GameBoard()  # Initialize with an empty board
-        board = board.spawn_tile()  # Spawn the first tile
-        board = board.spawn_tile()  # Spawn the second tile
+        board = board.spawn_tile(rng=rng)  # Spawn the first tile
+        board = board.spawn_tile(rng=rng)  # Spawn the second tile
         state = GameState(board=board, score=0)
         new_game = cls(game_id=game_id, state=state, moves=[])
         new_game.events.append(events.NewGameStarted(game_id=game_id))
         return new_game
 
-    def move(self, direction: MoveDirection) -> None:
+    def move(self, direction: MoveDirection, rng: Random = Random()) -> None:
         """Perform a move in the specified direction and update the game state.
 
         This shifts the board, merges tiles, updates the score, spawns a new tile,
@@ -400,6 +406,7 @@ class Py2048Game:
 
         Args:
             direction (MoveDirection): The direction to move (LEFT, RIGHT, UP, DOWN).
+            rng (Random): Random number generator used for spawning new tiles.
 
         Raises:
             InvalidMove: If an invalid direction is provided.
@@ -434,7 +441,7 @@ class Py2048Game:
             )
         )
 
-        shifted_board = shifted_board.spawn_tile()
+        shifted_board = shifted_board.spawn_tile(rng=rng)
 
         # Update the game state
         self.state = GameState(board=shifted_board, score=updated_score)

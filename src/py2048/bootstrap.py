@@ -6,6 +6,7 @@ and easier testing."""
 import inspect
 from collections.abc import Callable
 from functools import partial
+from random import Random
 from typing import Any
 
 from py2048.service_layer import handlers, messagebus, unit_of_work
@@ -17,6 +18,7 @@ def bootstrap(
     | None = None,
     command_handlers: dict[type[handlers.commands.Command], Callable[..., None]]
     | None = None,
+    rng: Random | None = None,
 ) -> messagebus.MessageBus:
     """Create and configure a MessageBus with injected dependencies.
 
@@ -31,6 +33,8 @@ def bootstrap(
             If None, uses default handlers.
         command_handlers (dict[type[handlers.commands.Command], Callable[..., None]], optional):
             A mapping of command types to command handler functions. If None, uses default handlers.
+        rng (Random, optional): A random number generator to be injected into handlers that require
+            it. Useful for deterministic behavior in tests.
 
     Returns:
         MessageBus: A fully wired MessageBus instance.
@@ -41,7 +45,9 @@ def bootstrap(
     if command_handlers is None:
         command_handlers = handlers.COMMAND_HANDLERS
 
-    dependencies = {"uow": uow}
+    dependencies: dict[str, Any] = {"uow": uow}
+    if rng is not None:
+        dependencies["rng"] = rng
 
     injected_event_handlers = {
         event_type: [

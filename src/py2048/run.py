@@ -9,6 +9,7 @@ import click
 import py2048.interfaces.cli.main as cli_main
 import py2048.interfaces.gui.main as gui_main
 import py2048.interfaces.web.main as web_main
+from py2048.bootstrap import bootstrap
 
 
 class Mode(str, Enum):
@@ -20,6 +21,8 @@ class Mode(str, Enum):
 
 
 CONTEXT_SETTINGS = {"help_option_names": ["-h", "--help"]}
+
+bus = bootstrap()
 
 
 @click.command(context_settings=CONTEXT_SETTINGS)
@@ -37,7 +40,7 @@ def main(mode: Literal["cli", "gui", "web"] = "cli") -> None:
     """Launch Py2048 in CLI, GUI, or Web mode."""
     match Mode(mode.lower()):
         case Mode.CLI:
-            cli_main.run_cli()
+            cli_main.run_cli(bus=bus)
         case Mode.GUI:
             gui_main.run_gui()
         case Mode.WEB:

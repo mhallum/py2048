@@ -5,8 +5,13 @@ from enum import Enum
 
 from blessed import Terminal
 from blessed.keyboard import Keystroke
+from rich.console import Console
 
+from py2048 import bootstrap
 from py2048.application.menu import Menu
+from py2048.core import commands
+from py2048.interfaces.cli.game_runner import CLIGameRunner
+from py2048.service_layer.messagebus import MessageBus  # for type hinting
 
 PADDING = 4
 
@@ -34,8 +39,6 @@ class CLIMenuRunner:
             self.menu.move_down()
         elif key.code == self.term.KEY_ENTER:
             self.running = False
-        elif key.name in {"KEY_ESCAPE"} or key in {"q", "Q"}:
-            self.running = False
 
     def _render_title(self, width: int) -> None:
         print(self.term.center("╔" + "═" * width + "╗"))
@@ -60,7 +63,7 @@ class CLIMenuRunner:
         print(self.term.center("╚" + "═" * width + "╝"))
 
     def _render_footer(self) -> None:
-        msg = "↑ ↓ to navigate | Enter to select | Esc/Q to quit"
+        msg = "↑ ↓ to navigate | Enter to select"
         print("\n" + self.term.center(self.term.dim + msg + self.term.normal))
 
     def _menu_width(self) -> int:
@@ -77,7 +80,12 @@ class CLIMenuRunner:
         self._render_footer()
 
 
-def run_cli(term: Terminal | None = None):
+def run_cli(
+    bus: MessageBus,
+    term: Terminal | None = None,
+    console: Console | None = None,
+    test_mode: bool = False,
+) -> None:
     """Run the CLI version of the game."""
 
     # Normally, we would just use `term = Terminal()`, but for testing, we allow passing a
@@ -87,6 +95,10 @@ def run_cli(term: Terminal | None = None):
     # This is useful for unit tests where we want to control the terminal behavior.
     if term is None:
         term = Terminal()  # pragma: no cover
+    # If `console` is None, we create a new Console instance.
+    # This is for the same reason as `term`: to allow for testing with a mock console.
+    if console is None:
+        console = Console()  # pragma: no cover
 
     menu = Menu("Welcome to Py2048!", [MenuItem.NEW_GAME, MenuItem.EXIT])
     menu_runner = CLIMenuRunner(menu, term)
@@ -97,10 +109,23 @@ def run_cli(term: Terminal | None = None):
             key = term.inkey()
             menu_runner.process_keypress(key)
 
+        if menu.selected == MenuItem.NEW_GAME:
+            print(term.center("Starting a new game..."))
+            time.sleep(1)
+            game_id = "new_game"
+
+            cmd = commands.StartNewGame(game_id=game_id)
+            bus.handle(cmd)
+
+            game_runner = CLIGameRunner(
+                game_id, bus, term, console, test_mode=test_mode
+            )
+            game_runner.run()
+
         if menu.selected == MenuItem.EXIT:
             print(term.center("Goodbye!"))
             time.sleep(1)
 
 
-if __name__ == "__main__":
-    run_cli()  # pragma: no cover
+if __name__ == "__main__":  # pragma: no cover
+    run_cli(bus=bootstrap.bootstrap(), term=Terminal(), console=Console())
