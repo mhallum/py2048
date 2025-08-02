@@ -58,7 +58,7 @@ def test_running_cli_opens_main_menu(capsys: CaptureFixture[str]):
     assert TITLE_MARKER in captured.out
 
     # New Game is the first item and is highlighted
-    assert "> " + NEW_GAME_MENU_ITEM in captured.out
+    assert "➤ " + NEW_GAME_MENU_ITEM in captured.out
 
     # Exit is the second item
     assert EXIT_MENU_ITEM in captured.out
@@ -88,16 +88,16 @@ def test_menu_navigation(capsys: CaptureFixture[str]):
     loops = captured.out.split("↑ ↓ to navigate | Enter to select")
 
     # Check output after User presses down
-    assert "> " + EXIT_MENU_ITEM in loops[1]
-    assert "> " + NEW_GAME_MENU_ITEM not in loops[1]
+    assert "➤ " + EXIT_MENU_ITEM in loops[1]
+    assert "➤ " + NEW_GAME_MENU_ITEM not in loops[1]
 
     # Check output after User presses up
-    assert "> " + NEW_GAME_MENU_ITEM in loops[2]
-    assert "> " + EXIT_MENU_ITEM not in loops[2]
+    assert "➤ " + NEW_GAME_MENU_ITEM in loops[2]
+    assert "➤ " + EXIT_MENU_ITEM not in loops[2]
 
     # Check output after User presses down again
-    assert "> " + EXIT_MENU_ITEM in loops[3]
-    assert "> " + NEW_GAME_MENU_ITEM not in loops[3]
+    assert "➤ " + EXIT_MENU_ITEM in loops[3]
+    assert "➤ " + NEW_GAME_MENU_ITEM not in loops[3]
 
     # Check output after User presses enter
     assert EXIT_MESSAGE in loops[4]

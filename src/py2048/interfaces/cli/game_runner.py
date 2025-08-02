@@ -25,11 +25,11 @@ from rich.text import Text
 
 from py2048 import views
 from py2048.core import commands
+from py2048.interfaces.cli.constants import LOOP_TERMINATION_DELIMITER
 from py2048.service_layer.messagebus import MessageBus
 
 TILE_WIDTH = 7  # Large enough to fit the largest possible tile value (131072)
 USER_INPUT_INSTRUCTIONS = "Press ↑ ↓ ← → to merge tiles | Esc/Q to quit"
-LOOP_TERMINATION_DELIMITER = "===END===\n"
 
 
 class CLIGameRunner:
