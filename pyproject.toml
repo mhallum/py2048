@@ -30,6 +30,7 @@ ruff = "^0.12.7"
 mypy = "^1.17.0"
 pre-commit = "^4.2.0"
 pytest-cov = "^6.2.1"
+hypothesis = "^6.136.7"
 
 
 [tool.pytest.ini_options]
