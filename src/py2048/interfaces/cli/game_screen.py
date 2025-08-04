@@ -1,21 +1,18 @@
-"""Parser for the console output of the game runner."""
-
 import re
 from dataclasses import dataclass
 from functools import cached_property
 
-# pylint: disable=too-few-public-methods
+from rich import box
+from rich.console import Console
+from rich.table import Table
+from rich.text import Text
 
-
-def split_console_output_loops(
-    output: str, loop_termination_delimiter: str
-) -> list[str]:
-    """Splits the console output by loop"""
-    return output.split(loop_termination_delimiter)
+TILE_WIDTH = 7  # Large enough to fit the largest possible tile value (131072)
+USER_INPUT_INSTRUCTIONS = "Press ↑ ↓ ← → to merge tiles | Esc/Q to quit"
 
 
 @dataclass(frozen=True)
-class ConsoleGameScreenParser:
+class GameScreenParser:
     """Parser for a cli game screen output."""
 
     output: str
@@ -82,3 +79,51 @@ class ConsoleGameScreenParser:
             tuple(int(cell.strip()) if cell.strip().isdigit() else 0 for cell in row)
             for row in rows
         )
+
+
+@dataclass
+class GameScreen:
+    """Represents the game screen for the CLI interface."""
+
+    grid: tuple[tuple[int, ...], ...]
+    score: int
+    high_score: int
+
+    def _make_table(self) -> Table:
+        """Create a table for the game board."""
+
+        table = Table(
+            safe_box=True,
+            show_header=False,
+            show_lines=True,
+            box=box.DOUBLE,
+        )
+
+        for _ in range(len(self.grid[0])):
+            table.add_column("", width=TILE_WIDTH, justify="center", no_wrap=True)
+
+        for row in self.grid:
+            table.add_row(*[f"\n{value}\n" if value != 0 else "\n \n" for value in row])
+
+        return table
+
+    def render(self, console: Console) -> None:
+        """Render the game screen."""
+        console.clear()
+        console.print()  # adds an empty line for better spacing
+        scores = Text(
+            f"Score: {self.score}\nHigh Score: {self.high_score}",
+            justify="center",
+        )
+        console.print(scores, justify="center")
+        console.print(self._make_table(), justify="center")
+        console.print(USER_INPUT_INSTRUCTIONS, justify="center", style="dim")
+
+    @classmethod
+    def from_output(cls, output: str) -> "GameScreen":
+        """Recreate a GameScreen instance from a string output."""
+
+        parser = GameScreenParser(output)
+        if not parser.grid or parser.score is None or parser.high_score is None:
+            raise ValueError("Invalid game screen output format")
+        return cls(grid=parser.grid, score=parser.score, high_score=parser.high_score)

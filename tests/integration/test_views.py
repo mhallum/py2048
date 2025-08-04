@@ -21,7 +21,7 @@ def test_game_screen_values_view(fake_user_data_folder_with_game: Path):
 
     expected_score = 4
 
-    assert screen_values["board"] == expected_grid
+    assert screen_values["grid"] == expected_grid
     assert screen_values["score"] == expected_score
     assert (
         screen_values["high_score"] == 0

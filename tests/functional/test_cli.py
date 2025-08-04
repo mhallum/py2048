@@ -12,10 +12,9 @@ from rich.console import Console
 
 from py2048.bootstrap import bootstrap
 from py2048.interfaces.cli.game_runner import LOOP_TERMINATION_DELIMITER
+from py2048.interfaces.cli.game_screen import GameScreen
 from py2048.interfaces.cli.main import run_cli
 from py2048.service_layer.unit_of_work import JsonUnitOfWork
-
-from .console_parser import ConsoleGameScreenParser, split_console_output_loops
 
 KEY_UP = 259
 KEY_DOWN = 258
@@ -36,6 +35,13 @@ def fake_key(code: int, name: str) -> MagicMock:
     key.code = code
     key.name = name
     return key
+
+
+def split_console_output_loops(
+    output: str, loop_termination_delimiter: str
+) -> list[str]:
+    """Splits the console output by loop"""
+    return output.split(loop_termination_delimiter)
 
 
 @pytest.mark.functional
@@ -157,59 +163,50 @@ def test_starting_a_new_game(fake_user_data_folder: Path):
     assert len(loops) == expected_number_of_loops
 
     # Assertions for the first loop (New Game)
-    game_screen = ConsoleGameScreenParser(loops[0])
-    assert game_screen.score == 0
-    assert game_screen.high_score == 0
-    assert game_screen.grid == (
-        (0, 0, 0, 2),
-        (0, 2, 0, 0),
-        (0, 0, 0, 0),
-        (0, 0, 0, 0),
+    expected_game_screen = GameScreen(
+        grid=((0, 0, 0, 2), (0, 2, 0, 0), (0, 0, 0, 0), (0, 0, 0, 0)),
+        score=0,
+        high_score=0,
     )  # Game starts with 2 spawned tiles
+    game_screen = GameScreen.from_output(loops[0])
+    assert game_screen == expected_game_screen
 
     # Assertions for the second loop (after moving up)
-    game_screen = ConsoleGameScreenParser(loops[1])
-    assert game_screen.score == 0
-    assert game_screen.high_score == 0
-    assert game_screen.grid == (
-        (0, 2, 0, 2),
-        (2, 0, 0, 0),
-        (0, 0, 0, 0),
-        (0, 0, 0, 0),
+    expected_game_screen = GameScreen(
+        grid=((0, 2, 0, 2), (2, 0, 0, 0), (0, 0, 0, 0), (0, 0, 0, 0)),
+        score=0,
+        high_score=0,
     )  # The board has shifted up and spawned a new tile
+    game_screen = GameScreen.from_output(loops[1])
+    assert game_screen == expected_game_screen
 
     # Assertions for the third loop (after moving down)
-    game_screen = ConsoleGameScreenParser(loops[2])
-    assert game_screen.score == 0
-    assert game_screen.high_score == 0
-    assert game_screen.grid == (
-        (0, 0, 0, 0),
-        (0, 0, 0, 0),
-        (0, 0, 2, 0),
-        (2, 2, 0, 2),
+    game_screen = GameScreen.from_output(loops[2])
+    expected_game_screen = GameScreen(
+        grid=((0, 0, 0, 0), (0, 0, 0, 0), (0, 0, 2, 0), (2, 2, 0, 2)),
+        score=0,
+        high_score=0,
     )  # The board has shifted down and spawned a new tile
+    game_screen = GameScreen.from_output(loops[2])
+    assert game_screen == expected_game_screen
 
     # Assertions for the fourth loop (after moving left)
-    game_screen = ConsoleGameScreenParser(loops[3])
-    assert game_screen.score == 4  # Score should be 4 after merging two 2s
-    assert game_screen.high_score == 0
-    assert game_screen.grid == (
-        (0, 0, 0, 0),
-        (0, 0, 0, 0),
-        (2, 2, 0, 0),
-        (4, 2, 0, 0),
+    expected_game_screen = GameScreen(
+        grid=((0, 0, 0, 0), (0, 0, 0, 0), (2, 2, 0, 0), (4, 2, 0, 0)),
+        score=4,  # Score should be 4 after merging two 2s
+        high_score=0,
     )  # The board has shifted left (merging the 2s) and spawned a new tile
+    game_screen = GameScreen.from_output(loops[3])
+    assert game_screen == expected_game_screen
 
     # Assertions for the fifth loop (after moving right)
-    game_screen = ConsoleGameScreenParser(loops[4])
-    assert game_screen.score == 8  # Score should increase by 4 after merging two 2s
-    assert game_screen.high_score == 0
-    assert game_screen.grid == (
-        (0, 0, 0, 0),
-        (0, 0, 2, 0),
-        (0, 0, 0, 4),
-        (0, 0, 4, 2),
+    expected_game_screen = GameScreen(
+        grid=((0, 0, 0, 0), (0, 0, 2, 0), (0, 0, 0, 4), (0, 0, 4, 2)),
+        score=8,  # Score should increase by 4 after merging two 2s
+        high_score=0,
     )  # The board has shifted right (merging the 2s) and spawned a new tile
+    game_screen = GameScreen.from_output(loops[4])
+    assert game_screen == expected_game_screen
 
     # A goodbye message should be displayed after the user exits
     assert (

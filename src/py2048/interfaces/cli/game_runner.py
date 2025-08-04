@@ -18,14 +18,12 @@ import time
 
 from blessed import Terminal
 from blessed.keyboard import Keystroke
-from rich import box
 from rich.console import Console
-from rich.table import Table
-from rich.text import Text
 
 from py2048 import views
 from py2048.core import commands
 from py2048.interfaces.cli.constants import LOOP_TERMINATION_DELIMITER
+from py2048.interfaces.cli.game_screen import GameScreen
 from py2048.service_layer.messagebus import MessageBus
 
 TILE_WIDTH = 7  # Large enough to fit the largest possible tile value (131072)
@@ -65,39 +63,6 @@ class CLIGameRunner:
             case _:
                 return None
 
-    def _make_table(self, grid: tuple[tuple[int, ...], ...]) -> Table:
-        """Create a table for the game board."""
-
-        table = Table(
-            safe_box=True,
-            show_header=False,
-            show_lines=True,
-            box=box.DOUBLE,
-        )
-
-        for _ in range(len(grid[0])):
-            table.add_column("", width=TILE_WIDTH, justify="center", no_wrap=True)
-
-        for row in grid:
-            table.add_row(*[f"\n{value}\n" if value != 0 else "\n \n" for value in row])
-
-        return table
-
-    def render(self) -> None:
-        """Render the game screen."""
-
-        game_values = views.game_screen_values(game_id=self.game_id, uow=self.bus.uow)
-        self.console.clear()
-        self.console.print()  # adds an empy line for better spacing
-        table = self._make_table(game_values["board"])
-        scores = Text(
-            f"Score: {game_values['score']}\nHigh Score: {game_values['high_score']}",
-            justify="center",
-        )
-        self.console.print(scores, justify="center")
-        self.console.print(table, justify="center")
-        self.console.print(USER_INPUT_INSTRUCTIONS, justify="center", style="dim")
-
     def run(self) -> None:
         """Run the CLI game loop."""
 
@@ -108,7 +73,10 @@ class CLIGameRunner:
         ):
             self.running = True
             while self.running:  # pylint: disable=while-used
-                self.render()
+                game_screen = GameScreen(
+                    **views.game_screen_values(game_id=self.game_id, uow=self.bus.uow)
+                )
+                game_screen.render(self.console)
 
                 key = self.term.inkey()
 
