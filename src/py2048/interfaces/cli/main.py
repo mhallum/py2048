@@ -16,6 +16,7 @@ from py2048.core import commands
 from py2048.interfaces.cli.constants import LOOP_TERMINATION_DELIMITER
 from py2048.interfaces.cli.game_runner import CLIGameRunner
 from py2048.service_layer.messagebus import MessageBus  # for type hinting
+from py2048.service_layer.unit_of_work import JsonUnitOfWork
 
 PADDING = 4
 
@@ -128,4 +129,8 @@ def run_cli(
 
 
 if __name__ == "__main__":  # pragma: no cover
-    run_cli(bus=bootstrap.bootstrap(), term=Terminal(), console=Console())
+    run_cli(
+        bus=bootstrap.bootstrap(uow=JsonUnitOfWork("test")),
+        term=Terminal(),
+        console=Console(),
+    )

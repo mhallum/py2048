@@ -15,8 +15,10 @@ def start_new_game(
     cmd: commands.StartNewGame, uow: AbstractUnitOfWork, rng: Random = Random()
 ) -> None:
     """Handler for starting a new game."""
-    new_game = Py2048Game.create_new_game(cmd.game_id, rng=rng)
-    uow.games.add(new_game)
+    with uow:
+        new_game = Py2048Game.create_new_game(cmd.game_id, rng=rng)
+        uow.games.add(new_game)
+        uow.commit()
 
 
 def log_new_game_event(event: events.NewGameStarted) -> None:
@@ -28,9 +30,11 @@ def make_move(
     cmd: commands.MakeMove, uow: AbstractUnitOfWork, rng: Random = Random()
 ) -> None:
     """Handler for making a move in the game."""
-    game = uow.games.get(cmd.game_id)
-    direction = MoveDirection(cmd.direction)
-    game.move(direction, rng=rng)
+    with uow:
+        game = uow.games.get(cmd.game_id)
+        direction = MoveDirection(cmd.direction)
+        game.move(direction, rng=rng)
+        uow.commit()
 
 
 EVENT_HANDLERS: dict[type[events.Event], list[Callable[..., None]]] = {

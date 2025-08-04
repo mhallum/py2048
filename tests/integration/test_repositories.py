@@ -2,42 +2,62 @@
 
 # pylint: disable=too-few-public-methods
 
+from pathlib import Path
+
 import pytest
 
-from py2048.adapters.repositories import InMemoryGameRepository
+from py2048.adapters.repositories import JsonGameRepository
 from py2048.core.models import Py2048Game
 
+FAKE_DATA_FOLDER: str = "fake_data_folder"
 
-class TestInMemoryGameRepository:
-    """Test suite for the InMemoryGameRepository."""
+
+class TestJsonGameRepository:
+    """Test suite for the JsonGameRepository."""
 
     @staticmethod
-    def test_can_add_game():
-        """Test adding a game to the repository."""
-        game = Py2048Game.create_new_game(game_id="test_game")
-        repository = InMemoryGameRepository()
+    def test_can_add_game(fake_user_data_folder_with_game: Path):
+        """Test adding and retrieving a game from the JSON repository."""
+        game = Py2048Game.create_new_game(game_id="test_new_game")
+        repository = JsonGameRepository(folder=fake_user_data_folder_with_game)
         repository.add(game)
 
-        retrieved_game = repository.get("test_game")
+        retrieved_game = repository.get("test_new_game")
         assert retrieved_game == game
 
     @staticmethod
-    def test_can_get_game_by_id():
-        """Test retrieving a game by its ID."""
-        repository = InMemoryGameRepository()
-        game1 = Py2048Game.create_new_game(game_id="test_game1")
-        game2 = Py2048Game.create_new_game(game_id="test_game2")
-        repository.add(game1)
-        repository.add(game2)
-
-        retrieved_game = repository.get("test_game1")
-        assert retrieved_game == game1
-
-    @staticmethod
-    def test_get_non_existent_game_raises_error():
+    def test_get_non_existent_game_raises_error(fake_user_data_folder_with_game: Path):
         """Test that trying to get a non-existent game raises a KeyError."""
-        repository = InMemoryGameRepository()
+        repository = JsonGameRepository(folder=fake_user_data_folder_with_game)
         with pytest.raises(
             KeyError, match="Game with ID non_existent not found in repository."
         ):
             repository.get("non_existent")
+
+    @staticmethod
+    def test_can_get_existing_game(fake_user_data_folder_with_game: Path):
+        """Test retrieving an existing game from the JSON repository."""
+        repository = JsonGameRepository(folder=fake_user_data_folder_with_game)
+        game_id = "test_game"
+        game = repository.get(game_id)
+        assert isinstance(game, Py2048Game)
+        assert game.game_id == game_id
+        assert game.state.board.grid == (
+            (4, 2, 0, 0),
+            (0, 0, 0, 0),
+            (0, 0, 0, 0),
+            (0, 0, 0, 0),
+        )
+        expected_score = 4
+        assert game.state.score == expected_score
+        assert len(game.moves) == 1
+
+    @staticmethod
+    def test_missing_file_does_not_raise_error(fake_user_data_folder: Path):
+        """Test that missing JSON file does not raise an error on initialization.
+
+        Instead it initializes an empty repository.
+        """
+        repository = JsonGameRepository(folder=fake_user_data_folder)
+        assert isinstance(repository, JsonGameRepository)
+        assert len(repository.list()) == 0

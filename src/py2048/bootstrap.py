@@ -13,7 +13,7 @@ from py2048.service_layer import handlers, messagebus, unit_of_work
 
 
 def bootstrap(
-    uow: unit_of_work.AbstractUnitOfWork | None = None,
+    uow: unit_of_work.AbstractUnitOfWork,
     event_handlers: dict[type[handlers.events.Event], list[Callable[..., None]]]
     | None = None,
     command_handlers: dict[type[handlers.commands.Command], Callable[..., None]]
@@ -26,8 +26,7 @@ def bootstrap(
     necessary dependencies like the Unit of Work into each handler function.
 
     Args:
-        uow (AbstractUnitOfWork, optional): The unit of work to use.
-            Defaults to an in-memory implementation.
+        uow (AbstractUnitOfWork): The unit of work to use.
         event_handlers (dict[type[handlers.events.Event], list[Callable[..., None]]], optional):
             A mapping of event types to lists of event handler functions.
             If None, uses default handlers.
@@ -39,7 +38,6 @@ def bootstrap(
     Returns:
         MessageBus: A fully wired MessageBus instance.
     """
-    uow = uow or unit_of_work.InMemoryUnitOfWork()
     if event_handlers is None:
         event_handlers = handlers.EVENT_HANDLERS
     if command_handlers is None:

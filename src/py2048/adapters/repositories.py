@@ -3,7 +3,11 @@ and an in-memory implementation of the game repository for the py2048 game.
 """
 
 import abc
+import json
+from pathlib import Path
+from typing import cast
 
+from py2048.adapters.schemas import GameSchema
 from py2048.core.models import Py2048Game
 
 
@@ -42,21 +46,55 @@ class AbstractGameRepository(abc.ABC):
         """Abstract method to retrieve a game by its ID."""
         raise NotImplementedError  # pragma: no cover
 
+    def save(self) -> None:
+        """Save the current state of the repository."""
 
-class InMemoryGameRepository(AbstractGameRepository):
-    """In-memory implementation of the game repository."""
 
-    def __init__(self):
+class JsonGameRepository(AbstractGameRepository):
+    """JSON file-based implementation of the game repository."""
+
+    def __init__(self, folder: str | Path):
         super().__init__()
-        self._games: set[Py2048Game] = set()
+        self._save_game_path = Path(folder) / "games.json"
+        self._games: dict[str, Py2048Game] = {}
+        self._load()
 
     def _add(self, game: Py2048Game) -> None:
-        """Add a game to the in-memory repository."""
-        self._games.add(game)
+        """Add a game to the JSON repository."""
+        self._games[game.game_id] = game
 
     def _get(self, game_id: str) -> Py2048Game:
-        """Retrieve a game by its ID from the in-memory repository."""
-        for game in self._games:
-            if game.game_id == game_id:
-                return game
+        """Retrieve a game by its ID from the JSON repository."""
+
+        if game := self._games.get(game_id):
+            return game
         raise KeyError(f"Game with ID {game_id} not found in repository.")
+
+    def _load(self) -> None:
+        """Load games from the JSON file into the repository."""
+        if not self._save_game_path.exists():
+            return
+
+        with self._save_game_path.open("r", encoding="utf-8") as file:
+            raw_data = json.load(file)
+
+        if not raw_data:
+            return  # Empty file, nothing to load
+
+        games = cast(list[Py2048Game], GameSchema().load(raw_data, many=True))
+
+        self._games = {game.game_id: game for game in games}
+
+    def list(self) -> list[Py2048Game]:
+        """List all games in the repository."""
+        return list(self._games.values())
+
+    def save(self) -> None:
+        """Save all games to the JSON file."""
+        if not self._save_game_path.parent.exists():
+            self._save_game_path.parent.mkdir(parents=True)
+
+        with self._save_game_path.open("w", encoding="utf-8") as file:
+            json.dump(
+                GameSchema().dump(self._games.values(), many=True), file, indent=4
+            )

@@ -9,7 +9,9 @@ import click
 import py2048.interfaces.cli.main as cli_main
 import py2048.interfaces.gui.main as gui_main
 import py2048.interfaces.web.main as web_main
+from py2048 import config
 from py2048.bootstrap import bootstrap
+from py2048.service_layer.unit_of_work import JsonUnitOfWork
 
 
 class Mode(str, Enum):
@@ -22,7 +24,9 @@ class Mode(str, Enum):
 
 CONTEXT_SETTINGS = {"help_option_names": ["-h", "--help"]}
 
-bus = bootstrap()
+bus = bootstrap(
+    uow=JsonUnitOfWork(config.get_user_data_folder())
+)  # Initialize the message bus with a test UoW
 
 
 @click.command(context_settings=CONTEXT_SETTINGS)

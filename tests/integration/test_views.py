@@ -1,19 +1,28 @@
 """Test suite for the game_screen_values view in the Py2048 application."""
 
+from pathlib import Path
+
 from py2048 import bootstrap, views
-from py2048.core import models  # for type hinting
+from py2048.service_layer.unit_of_work import JsonUnitOfWork
 
 
-def test_game_screen_values_view(test_game: "models.Py2048Game"):
+def test_game_screen_values_view(fake_user_data_folder_with_game: Path):
     """Test the game_screen_values view."""
-    bus = bootstrap.bootstrap()
-    bus.uow.games.add(test_game)
-    game_id = test_game.game_id
+    bus = bootstrap.bootstrap(JsonUnitOfWork(fake_user_data_folder_with_game))
 
-    screen_values = views.game_screen_values(game_id, uow=bus.uow)
+    screen_values = views.game_screen_values("test_game", uow=bus.uow)
 
-    assert screen_values["board"] == test_game.state.board.grid
-    assert screen_values["score"] == test_game.state.score
+    expected_grid = (
+        (4, 2, 0, 0),
+        (0, 0, 0, 0),
+        (0, 0, 0, 0),
+        (0, 0, 0, 0),
+    )
+
+    expected_score = 4
+
+    assert screen_values["board"] == expected_grid
+    assert screen_values["score"] == expected_score
     assert (
         screen_values["high_score"] == 0
     )  # Placeholder, high score logic not implemented yet

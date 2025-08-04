@@ -16,6 +16,8 @@ from py2048.service_layer.messagebus import (
     UNKNOWN_MESSAGE_TYPE_DESCRIPTION,
 )
 
+from .test_handlers import FakeUnitOfWork
+
 # pylint: disable=too-few-public-methods
 
 
@@ -54,6 +56,12 @@ class FaultyUnitOfWork(unit_of_work.AbstractUnitOfWork):
         """Simulate an error when collecting events."""
         raise Exception("Simulated failure in collecting events")  # pylint: disable=broad-exception-raised
 
+    def _commit(self) -> None:
+        """No-op for the faulty unit of work."""
+
+    def rollback(self) -> None:
+        """No-op for the faulty unit of work."""
+
 
 # ============================================================================
 #     Tests
@@ -66,7 +74,7 @@ class TestMessageBusEdgeCases:
     @staticmethod
     def test_bus_raises_error_on_invalid_message_type():
         """Test that an invalid message type raises an error."""
-        bus = bootstrap()
+        bus = bootstrap(uow=FakeUnitOfWork())
 
         expected_error_message = UNKNOWN_MESSAGE_TYPE_DESCRIPTION.format(
             type_name="str"
@@ -87,7 +95,7 @@ class TestCommandHandlingEdgeCases:
         when attempting to handle a command with no registered handler.
         """
 
-        bus = bootstrap()
+        bus = bootstrap(uow=FakeUnitOfWork())
 
         command = FakeCommand()
         expected_content = MISSING_HANDLER_DESCRIPTION.format(
@@ -104,7 +112,10 @@ class TestCommandHandlingEdgeCases:
         caplog: pytest.LogCaptureFixture,
     ):
         """Test that an unexpected error while handling a command is logged and continues."""
-        bus = bootstrap(command_handlers={FakeCommand: failing_command_handler})
+        bus = bootstrap(
+            uow=FakeUnitOfWork(),
+            command_handlers={FakeCommand: failing_command_handler},
+        )
 
         command = FakeCommand()
 
@@ -174,7 +185,7 @@ class TestEventHandlingEdgeCases:
         caplog: pytest.LogCaptureFixture,
     ):
         """Test that the bus logs a debug message and continues on missing handler."""
-        bus = bootstrap(event_handlers={FakeEvent: []})
+        bus = bootstrap(uow=FakeUnitOfWork(), event_handlers={FakeEvent: []})
 
         event = FakeEvent()
 
@@ -191,7 +202,9 @@ class TestEventHandlingEdgeCases:
     ):
         """Test that an unexpected error while handling an event is logged and continues."""
 
-        bus = bootstrap(event_handlers={FakeEvent: [failing_command_handler]})
+        bus = bootstrap(
+            uow=FakeUnitOfWork(), event_handlers={FakeEvent: [failing_command_handler]}
+        )
         event = FakeEvent()
 
         expected_content = UNEXPECTED_ERROR_DESCRIPTION.format(
@@ -253,7 +266,9 @@ class TestEventHandlingLogging:
     @staticmethod
     def test_bus_logs_message_for_event_handling(caplog: pytest.LogCaptureFixture):
         """The bus logs a debug message when handling an event."""
-        bus = bootstrap(event_handlers={FakeEvent: [dummy_event_handler]})
+        bus = bootstrap(
+            uow=FakeUnitOfWork(), event_handlers={FakeEvent: [dummy_event_handler]}
+        )
         event = FakeEvent()
 
         with caplog.at_level("DEBUG"):
@@ -269,7 +284,9 @@ class TestEventHandlingLogging:
     @staticmethod
     def test_bus_logs_message_for_command_handling(caplog: pytest.LogCaptureFixture):
         """Test that the bus logs a debug message when handling a command."""
-        bus = bootstrap(command_handlers={FakeCommand: dummy_command_handler})
+        bus = bootstrap(
+            uow=FakeUnitOfWork(), command_handlers={FakeCommand: dummy_command_handler}
+        )
         command = FakeCommand()
 
         with caplog.at_level("DEBUG"):

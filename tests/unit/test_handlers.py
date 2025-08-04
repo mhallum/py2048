@@ -2,15 +2,55 @@
 
 # pylint: disable=too-few-public-methods
 
+import random
+from collections.abc import Iterable
+
 from py2048 import bootstrap
+from py2048.adapters.repositories import AbstractGameRepository
 from py2048.core import commands, models
-from py2048.service_layer.unit_of_work import InMemoryUnitOfWork
+from py2048.service_layer.unit_of_work import AbstractUnitOfWork
+
+
+class FakeGameRepository(AbstractGameRepository):
+    """A fake game repository for testing purposes."""
+
+    def __init__(self, games: Iterable[models.Py2048Game] = ()):
+        super().__init__()
+        self._games = set(games)
+
+    def _add(self, game: models.Py2048Game) -> None:
+        """Add a game to the fake repository."""
+        self._games.add(game)
+
+    def _get(self, game_id: str) -> models.Py2048Game:
+        """Retrieve a game by its ID from the fake repository."""
+        for game in self._games:
+            if game.game_id == game_id:
+                return game
+        raise KeyError(f"Game with ID {game_id} not found in repository.")
+
+
+class FakeUnitOfWork(AbstractUnitOfWork):
+    """A fake unit of work for testing purposes."""
+
+    def __init__(self):
+        self.games = FakeGameRepository([])
+        self.committed = False
+
+    def _commit(self) -> None:
+        """Commit the current unit of work."""
+        self.committed = True
+
+    def rollback(self) -> None:
+        """Rollback the current unit of work."""
+        # No-op for the fake unit of work
 
 
 def bootstrap_test_app():
-    """Bootstrap a test application with an in-memory unit of work."""
-    uow = InMemoryUnitOfWork()
-    return bootstrap.bootstrap(uow=uow)
+    """Bootstrap a test application with a fake unit of work and seeded rng."""
+    uow = FakeUnitOfWork()
+    rng = random.Random(42)  # Seeded RNG for reproducibility
+    return bootstrap.bootstrap(uow=uow, rng=rng)
 
 
 class TestCreateNewGame:

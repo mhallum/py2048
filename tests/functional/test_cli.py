@@ -1,5 +1,6 @@
-"""Funcional tests for the CLI interface of Py2048."""
+"""Functional tests for the CLI of Py2048."""
 
+from pathlib import Path
 from random import Random
 from unittest.mock import MagicMock, patch
 
@@ -12,6 +13,7 @@ from rich.console import Console
 from py2048.bootstrap import bootstrap
 from py2048.interfaces.cli.game_runner import LOOP_TERMINATION_DELIMITER
 from py2048.interfaces.cli.main import run_cli
+from py2048.service_layer.unit_of_work import JsonUnitOfWork
 
 from .console_parser import ConsoleGameScreenParser, split_console_output_loops
 
@@ -37,11 +39,13 @@ def fake_key(code: int, name: str) -> MagicMock:
 
 
 @pytest.mark.functional
-def test_running_cli_opens_main_menu(capsys: CaptureFixture[str]):
+def test_running_cli_opens_main_menu(
+    fake_user_data_folder: Path, capsys: CaptureFixture[str]
+):
     """Test that running the CLI opens the main menu."""
     term = Terminal()
     console = Console()
-    bus = bootstrap()
+    bus = bootstrap(uow=JsonUnitOfWork(fake_user_data_folder))
     with patch.object(
         term,
         "inkey",
@@ -65,9 +69,9 @@ def test_running_cli_opens_main_menu(capsys: CaptureFixture[str]):
 
 
 @pytest.mark.functional
-def test_menu_navigation(capsys: CaptureFixture[str]):
+def test_menu_navigation(fake_user_data_folder: Path, capsys: CaptureFixture[str]):
     """Test that the menu can be navigated using arrow keys."""
-    bus = bootstrap()
+    bus = bootstrap(uow=JsonUnitOfWork(Path(fake_user_data_folder)))
     term = Terminal()
 
     # The user experiments with the menu controls
@@ -104,12 +108,12 @@ def test_menu_navigation(capsys: CaptureFixture[str]):
 
 
 @pytest.mark.functional
-def test_starting_a_new_game():
+def test_starting_a_new_game(fake_user_data_folder: Path):
     """Test that selecting 'New Game' opens a game screen with a fresh game."""
     term = Terminal()
     console = Console(record=True)
     bus = bootstrap(
-        rng=Random(42)
+        uow=JsonUnitOfWork(Path(fake_user_data_folder)), rng=Random(42)
     )  # Using a fixed seed to make the game state predictable
 
     side_effects: list[MagicMock | Keystroke] = []
@@ -211,3 +215,19 @@ def test_starting_a_new_game():
     assert (
         EXIT_MESSAGE in loops[-2]
     )  # The last loop should contain the exit message (-2 to skip the empty line at the end)
+
+
+# Add test for other key presses
+# Add test for invalid moves
+# Add test for undo functionality
+
+# test_resuming_game
+
+# test_starting_another_game
+
+# test_finishing_game
+
+# test_starting_another_game_after_finishing
+
+# test_viewing_statistics
+# test_resetting_statistics
