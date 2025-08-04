@@ -1,3 +1,5 @@
+"""This module defines the GameScreen class for rendering the game board in a CLI interface."""
+
 import re
 from dataclasses import dataclass
 from functools import cached_property
@@ -9,6 +11,10 @@ from rich.text import Text
 
 TILE_WIDTH = 7  # Large enough to fit the largest possible tile value (131072)
 USER_INPUT_INSTRUCTIONS = "Press ↑ ↓ ← → to merge tiles | Esc/Q to quit"
+
+
+class InvalidGameScreenError(Exception):
+    """Custom exception for invalid game screen states."""
 
 
 @dataclass(frozen=True)
@@ -125,5 +131,5 @@ class GameScreen:
 
         parser = GameScreenParser(output)
         if not parser.grid or parser.score is None or parser.high_score is None:
-            raise ValueError("Invalid game screen output format")
+            raise InvalidGameScreenError("Invalid game screen output format")
         return cls(grid=parser.grid, score=parser.score, high_score=parser.high_score)

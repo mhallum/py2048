@@ -12,9 +12,10 @@ from rich.text import Text
 
 from py2048 import bootstrap
 from py2048.application.menu import Menu
+from py2048.config import get_user_data_folder
 from py2048.core import commands
 from py2048.interfaces.cli.constants import LOOP_TERMINATION_DELIMITER
-from py2048.interfaces.cli.game_runner import CLIGameRunner
+from py2048.interfaces.cli.runners import CLIGameRunner, DisplayIO
 from py2048.service_layer.messagebus import MessageBus  # for type hinting
 from py2048.service_layer.unit_of_work import JsonUnitOfWork
 
@@ -31,22 +32,19 @@ class MenuItem(str, Enum):
 class CLIMenuRunner:
     """Runner for the CLI menu."""
 
-    def __init__(
-        self, menu: Menu, term: Terminal, console: Console, test_mode: bool = False
-    ):
+    def __init__(self, menu: Menu, display: DisplayIO, test_mode: bool = False):
         self.menu = menu
-        self.term = term
-        self.console = console
+        self.display = display
         self.running = False
         self.test_mode = test_mode
 
     def process_keypress(self, key: Keystroke):
         """Process a key press"""
-        if key.code == self.term.KEY_UP:
+        if key.code == self.display.term.KEY_UP:
             self.menu.move_up()
-        elif key.code == self.term.KEY_DOWN:
+        elif key.code == self.display.term.KEY_DOWN:
             self.menu.move_down()
-        elif key.code == self.term.KEY_ENTER:
+        elif key.code == self.display.term.KEY_ENTER:
             self.running = False
 
     def _render_menu_panel(self):
@@ -60,21 +58,20 @@ class CLIMenuRunner:
             )
             table.add_row(text)
         panel = Panel(table, title="Main Menu", padding=(1, 2))
-        self.console.print(panel, justify="center")
+        self.display.console.print(panel, justify="center")
 
     def render(self) -> None:
         """Render the menu in the terminal."""
 
-        self.console.clear()
-        self.console.print()
-        self.console.print("Welcome to Py2048!", justify="center", style="bold")
-        self.console.print()  # adds an empty line for better spacing
+        self.display.console.clear()
+        self.display.console.print("Welcome to Py2048!", justify="center", style="bold")
+        self.display.console.print()  # adds an empty line for better spacing
         self._render_menu_panel()
-        self.console.print()
-        self.console.print(
+        self.display.console.print()
+        self.display.console.print(
             "↑ ↓ to navigate | Enter to select", justify="center", style="dim"
         )
-        self.console.print()
+        self.display.console.print()
 
     def run(self) -> None:
         """Run the menu loop."""
@@ -82,36 +79,35 @@ class CLIMenuRunner:
         while self.running:  # pylint: disable=while-used
             self.render()
 
-            key = self.term.inkey()
+            key = self.display.term.inkey()
 
-            if key.code == self.term.KEY_UP:
+            if key.code == self.display.term.KEY_UP:
                 self.menu.move_up()
-            elif key.code == self.term.KEY_DOWN:
+            elif key.code == self.display.term.KEY_DOWN:
                 self.menu.move_down()
-            elif key.code == self.term.KEY_ENTER:
+            elif key.code == self.display.term.KEY_ENTER:
                 self.running = False
 
-        if self.test_mode:
-            self.console.print(LOOP_TERMINATION_DELIMITER)
+            if self.test_mode:
+                self.display.console.print(LOOP_TERMINATION_DELIMITER)
 
 
 def run_cli(
     bus: MessageBus,
-    term: Terminal = Terminal(),
-    console: Console = Console(),
+    display: DisplayIO,
     test_mode: bool = False,
 ) -> None:
     """Run the CLI version of the game."""
 
     menu = Menu("Welcome to Py2048!", [MenuItem.NEW_GAME, MenuItem.EXIT])
-    menu_runner = CLIMenuRunner(menu, term, console)
+    menu_runner = CLIMenuRunner(menu, display=display, test_mode=test_mode)
 
-    with term.fullscreen(), term.cbreak(), term.hidden_cursor():
+    with display.term.fullscreen(), display.term.cbreak(), display.term.hidden_cursor():
         menu_runner.running = True
         menu_runner.run()
 
         if menu.selected == MenuItem.NEW_GAME:
-            print(term.center("Starting a new game..."))
+            display.console.print("Starting a new game...", justify="center")
             time.sleep(1)
             game_id = "new_game"
 
@@ -119,18 +115,20 @@ def run_cli(
             bus.handle(cmd)
 
             game_runner = CLIGameRunner(
-                game_id, bus, term, console, test_mode=test_mode
+                game_id, bus=bus, display=display, test_mode=test_mode
             )
             game_runner.run()
 
     if menu.selected == MenuItem.EXIT:
-        print(term.center("Goodbye!"))
+        display.console.print("Goodbye!", justify="center")
         time.sleep(1)
 
 
 if __name__ == "__main__":  # pragma: no cover
     run_cli(
-        bus=bootstrap.bootstrap(uow=JsonUnitOfWork("test")),
-        term=Terminal(),
-        console=Console(),
+        bus=bootstrap.bootstrap(uow=JsonUnitOfWork(get_user_data_folder())),
+        display=DisplayIO(
+            term=Terminal(),
+            console=Console(),
+        ),
     )

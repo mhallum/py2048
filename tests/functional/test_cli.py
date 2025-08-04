@@ -11,9 +11,9 @@ from pytest import CaptureFixture
 from rich.console import Console
 
 from py2048.bootstrap import bootstrap
-from py2048.interfaces.cli.game_runner import LOOP_TERMINATION_DELIMITER
 from py2048.interfaces.cli.game_screen import GameScreen
 from py2048.interfaces.cli.main import run_cli
+from py2048.interfaces.cli.runners import LOOP_TERMINATION_DELIMITER, DisplayIO
 from py2048.service_layer.unit_of_work import JsonUnitOfWork
 
 KEY_UP = 259
@@ -49,11 +49,13 @@ def test_running_cli_opens_main_menu(
     fake_user_data_folder: Path, capsys: CaptureFixture[str]
 ):
     """Test that running the CLI opens the main menu."""
-    term = Terminal()
-    console = Console()
+    display = DisplayIO(
+        term=Terminal(),
+        console=Console(record=True),
+    )
     bus = bootstrap(uow=JsonUnitOfWork(fake_user_data_folder))
     with patch.object(
-        term,
+        display.term,
         "inkey",
         side_effect=[
             fake_key(KEY_DOWN, "KEY_DOWN"),  # User presses down to select Exit
@@ -61,7 +63,7 @@ def test_running_cli_opens_main_menu(
         ],
     ):
         # Run the CLI interface
-        run_cli(bus=bus, term=term, console=console)
+        run_cli(bus=bus, display=display)
         captured = capsys.readouterr()
 
     # Menu title is displayed
@@ -75,14 +77,14 @@ def test_running_cli_opens_main_menu(
 
 
 @pytest.mark.functional
-def test_menu_navigation(fake_user_data_folder: Path, capsys: CaptureFixture[str]):
+def test_menu_navigation(fake_user_data_folder: Path):
     """Test that the menu can be navigated using arrow keys."""
     bus = bootstrap(uow=JsonUnitOfWork(Path(fake_user_data_folder)))
-    term = Terminal()
+    display = DisplayIO(term=Terminal(), console=Console(record=True))
 
     # The user experiments with the menu controls
     with patch.object(
-        term,
+        display.term,
         "inkey",
         side_effect=[
             fake_key(KEY_DOWN, "KEY_DOWN"),  # User presses down (Exit is selected)
@@ -92,10 +94,14 @@ def test_menu_navigation(fake_user_data_folder: Path, capsys: CaptureFixture[str
         ],
     ):
         # Run the CLI interface
-        run_cli(bus, term=term)
-        captured = capsys.readouterr()
+        run_cli(bus=bus, display=display, test_mode=True)
+        raw_output = display.console.export_text()
 
-    loops = captured.out.split("↑ ↓ to navigate | Enter to select")
+    loops = split_console_output_loops(raw_output, LOOP_TERMINATION_DELIMITER)
+
+    # Check output after user opens the menu
+    assert "➤ " + NEW_GAME_MENU_ITEM in loops[0]
+    assert "➤ " + EXIT_MENU_ITEM not in loops[0]
 
     # Check output after User presses down
     assert "➤ " + EXIT_MENU_ITEM in loops[1]
@@ -118,6 +124,7 @@ def test_starting_a_new_game(fake_user_data_folder: Path):
     """Test that selecting 'New Game' opens a game screen with a fresh game."""
     term = Terminal()
     console = Console(record=True)
+    display = DisplayIO(term=term, console=console)
     bus = bootstrap(
         uow=JsonUnitOfWork(Path(fake_user_data_folder)), rng=Random(42)
     )  # Using a fixed seed to make the game state predictable
@@ -155,20 +162,22 @@ def test_starting_a_new_game(fake_user_data_folder: Path):
     # (see assertions: 6)
 
     with patch.object(term, "inkey", side_effect=side_effects):
-        run_cli(bus=bus, term=term, console=console, test_mode=True)
+        run_cli(bus=bus, display=display, test_mode=True)
         raw_output = console.export_text()
-    loops = split_console_output_loops(raw_output, LOOP_TERMINATION_DELIMITER)
+    loops = split_console_output_loops(raw_output, LOOP_TERMINATION_DELIMITER)[
+        0:-1
+    ]  # Exclude the last empty loop
 
     expected_number_of_loops = 6
     assert len(loops) == expected_number_of_loops
 
-    # Assertions for the first loop (New Game)
+    # Assertions for the 1st game loop (New Game)
     expected_game_screen = GameScreen(
         grid=((0, 0, 0, 2), (0, 2, 0, 0), (0, 0, 0, 0), (0, 0, 0, 0)),
         score=0,
         high_score=0,
     )  # Game starts with 2 spawned tiles
-    game_screen = GameScreen.from_output(loops[0])
+    game_screen = GameScreen.from_output(loops[1])
     assert game_screen == expected_game_screen
 
     # Assertions for the second loop (after moving up)
@@ -177,17 +186,16 @@ def test_starting_a_new_game(fake_user_data_folder: Path):
         score=0,
         high_score=0,
     )  # The board has shifted up and spawned a new tile
-    game_screen = GameScreen.from_output(loops[1])
+    game_screen = GameScreen.from_output(loops[2])
     assert game_screen == expected_game_screen
 
     # Assertions for the third loop (after moving down)
-    game_screen = GameScreen.from_output(loops[2])
     expected_game_screen = GameScreen(
         grid=((0, 0, 0, 0), (0, 0, 0, 0), (0, 0, 2, 0), (2, 2, 0, 2)),
         score=0,
         high_score=0,
     )  # The board has shifted down and spawned a new tile
-    game_screen = GameScreen.from_output(loops[2])
+    game_screen = GameScreen.from_output(loops[3])
     assert game_screen == expected_game_screen
 
     # Assertions for the fourth loop (after moving left)
@@ -196,7 +204,7 @@ def test_starting_a_new_game(fake_user_data_folder: Path):
         score=4,  # Score should be 4 after merging two 2s
         high_score=0,
     )  # The board has shifted left (merging the 2s) and spawned a new tile
-    game_screen = GameScreen.from_output(loops[3])
+    game_screen = GameScreen.from_output(loops[4])
     assert game_screen == expected_game_screen
 
     # Assertions for the fifth loop (after moving right)
@@ -205,13 +213,11 @@ def test_starting_a_new_game(fake_user_data_folder: Path):
         score=8,  # Score should increase by 4 after merging two 2s
         high_score=0,
     )  # The board has shifted right (merging the 2s) and spawned a new tile
-    game_screen = GameScreen.from_output(loops[4])
+    game_screen = GameScreen.from_output(loops[5])
     assert game_screen == expected_game_screen
 
     # A goodbye message should be displayed after the user exits
-    assert (
-        EXIT_MESSAGE in loops[-2]
-    )  # The last loop should contain the exit message (-2 to skip the empty line at the end)
+    assert EXIT_MESSAGE in loops[5]
 
 
 # Add test for other key presses
