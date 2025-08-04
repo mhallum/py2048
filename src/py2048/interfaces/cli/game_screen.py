@@ -11,6 +11,9 @@ from rich.text import Text
 
 TILE_WIDTH = 7  # Large enough to fit the largest possible tile value (131072)
 USER_INPUT_INSTRUCTIONS = "Press ↑ ↓ ← → to merge tiles | Esc/Q to quit"
+TABLE_UPPER_LEFT_CORNER = "╔"
+TABLE_LOWER_LEFT_CORNER = "╚"
+TABLE_CELL_DIVIDER = "║"
 
 
 class InvalidGameScreenError(Exception):
@@ -54,7 +57,7 @@ class GameScreenParser:
     def grid_start_line_index(self) -> int:
         """Find the starting line index of the grid in the output."""
         for i, line in enumerate(self.lines):
-            if "╔" in line:
+            if TABLE_UPPER_LEFT_CORNER in line:
                 return i
         return 0
 
@@ -62,7 +65,7 @@ class GameScreenParser:
     def grid_end_line_index(self) -> int:
         """Find the ending line index of the grid in the output."""
         for i, line in enumerate(self.lines):
-            if "╚" in line:
+            if TABLE_LOWER_LEFT_CORNER in line:
                 return i
         return len(self.lines) - 1
 
@@ -76,7 +79,7 @@ class GameScreenParser:
 
         # Extract the rows from the console output
         rows = [
-            self.lines[i].split("║")[1:-1]
+            self.lines[i].split(TABLE_CELL_DIVIDER)[1:-1]
             for i in range(self.grid_start_line_index + 2, self.grid_end_line_index, 4)
         ]
 
