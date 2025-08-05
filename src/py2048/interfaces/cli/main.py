@@ -26,6 +26,7 @@ class MenuItem(str, Enum):
     """Enum for menu items."""
 
     NEW_GAME = "New Game"
+    RESUME_GAME = "Resume Game"
     EXIT = "Exit"
 
 
@@ -99,29 +100,40 @@ def run_cli(
 ) -> None:
     """Run the CLI version of the game."""
 
-    menu = Menu("Welcome to Py2048!", [MenuItem.NEW_GAME, MenuItem.EXIT])
-    menu_runner = CLIMenuRunner(menu, display=display, test_mode=test_mode)
+    running = True
 
-    with display.term.fullscreen(), display.term.cbreak(), display.term.hidden_cursor():
-        menu_runner.running = True
-        menu_runner.run()
+    while running:  # pylint: disable=while-used
+        menu = Menu(
+            "Welcome to Py2048!",
+            [MenuItem.NEW_GAME, MenuItem.RESUME_GAME, MenuItem.EXIT],
+        )
+        menu_runner = CLIMenuRunner(menu, display=display, test_mode=test_mode)
 
-        if menu.selected == MenuItem.NEW_GAME:
-            display.console.print("Starting a new game...", justify="center")
-            time.sleep(1)
-            game_id = "new_game"
+        with (
+            display.term.fullscreen(),
+            display.term.cbreak(),
+            display.term.hidden_cursor(),
+        ):
+            menu_runner.running = True
+            menu_runner.run()
 
-            cmd = commands.StartNewGame(game_id=game_id)
-            bus.handle(cmd)
+            if menu.selected == MenuItem.NEW_GAME:
+                display.console.print("Starting a new game...", justify="center")
+                time.sleep(1)
+                game_id = "new_game"
 
-            game_runner = CLIGameRunner(
-                game_id, bus=bus, display=display, test_mode=test_mode
-            )
-            game_runner.run()
+                cmd = commands.StartNewGame(game_id=game_id)
+                bus.handle(cmd)
 
-    if menu.selected == MenuItem.EXIT:
-        display.console.print("Goodbye!", justify="center")
-        time.sleep(1)
+                game_runner = CLIGameRunner(
+                    game_id, bus=bus, display=display, test_mode=test_mode
+                )
+                game_runner.run()
+
+            if menu.selected == MenuItem.EXIT:
+                display.console.print("Goodbye!", justify="center")
+                time.sleep(1)
+                running = False
 
 
 if __name__ == "__main__":  # pragma: no cover

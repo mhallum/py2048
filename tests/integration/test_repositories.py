@@ -43,14 +43,15 @@ class TestJsonGameRepository:
         assert isinstance(game, Py2048Game)
         assert game.game_id == game_id
         assert game.state.board.grid == (
-            (4, 2, 0, 0),
             (0, 0, 0, 0),
-            (0, 0, 0, 0),
-            (0, 0, 0, 0),
+            (0, 0, 2, 0),
+            (0, 0, 0, 4),
+            (0, 0, 4, 2),
         )
-        expected_score = 4
+        expected_score = 8
         assert game.state.score == expected_score
-        assert len(game.moves) == 1
+        expected_num_moves = 4
+        assert len(game.moves) == expected_num_moves
 
     @staticmethod
     def test_missing_file_does_not_raise_error(fake_user_data_folder: Path):

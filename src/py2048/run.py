@@ -2,6 +2,7 @@
 This script allows launching the game in CLI, GUI, or Web mode."""
 
 from enum import Enum
+from random import Random
 from typing import Literal
 
 import click
@@ -28,7 +29,7 @@ class Mode(str, Enum):
 CONTEXT_SETTINGS = {"help_option_names": ["-h", "--help"]}
 
 bus = bootstrap(
-    uow=JsonUnitOfWork(config.get_user_data_folder())
+    uow=JsonUnitOfWork(config.get_user_data_folder()), rng=Random(42)
 )  # Initialize the message bus with a test UoW
 display = DisplayIO(
     term=Terminal(),

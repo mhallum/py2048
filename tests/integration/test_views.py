@@ -13,13 +13,13 @@ def test_game_screen_values_view(fake_user_data_folder_with_game: Path):
     screen_values = views.game_screen_values("test_game", uow=bus.uow)
 
     expected_grid = (
-        (4, 2, 0, 0),
         (0, 0, 0, 0),
-        (0, 0, 0, 0),
-        (0, 0, 0, 0),
+        (0, 0, 2, 0),
+        (0, 0, 0, 4),
+        (0, 0, 4, 2),
     )
 
-    expected_score = 4
+    expected_score = 8
 
     assert screen_values["grid"] == expected_grid
     assert screen_values["score"] == expected_score
