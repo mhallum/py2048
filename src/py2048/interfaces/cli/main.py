@@ -20,6 +20,7 @@ from py2048.service_layer.messagebus import MessageBus  # for type hinting
 from py2048.service_layer.unit_of_work import JsonUnitOfWork
 
 PADDING = 4
+CURRENT_GAME_ID = "current_game"
 
 
 class MenuItem(str, Enum):
@@ -120,13 +121,21 @@ def run_cli(
             if menu.selected == MenuItem.NEW_GAME:
                 display.console.print("Starting a new game...", justify="center")
                 time.sleep(1)
-                game_id = "new_game"
 
-                cmd = commands.StartNewGame(game_id=game_id)
+                cmd = commands.StartNewGame(game_id=CURRENT_GAME_ID)
                 bus.handle(cmd)
 
                 game_runner = CLIGameRunner(
-                    game_id, bus=bus, display=display, test_mode=test_mode
+                    CURRENT_GAME_ID, bus=bus, display=display, test_mode=test_mode
+                )
+                game_runner.run()
+
+            if menu.selected == MenuItem.RESUME_GAME:
+                display.console.print("Resuming game...", justify="center")
+                time.sleep(1)
+
+                game_runner = CLIGameRunner(
+                    CURRENT_GAME_ID, bus=bus, display=display, test_mode=test_mode
                 )
                 game_runner.run()
 

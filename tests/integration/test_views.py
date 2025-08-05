@@ -10,7 +10,7 @@ def test_game_screen_values_view(fake_user_data_folder_with_game: Path):
     """Test the game_screen_values view."""
     bus = bootstrap.bootstrap(JsonUnitOfWork(fake_user_data_folder_with_game))
 
-    screen_values = views.game_screen_values("test_game", uow=bus.uow)
+    screen_values = views.game_screen_values("current_game", uow=bus.uow)
 
     expected_grid = (
         (0, 0, 0, 0),

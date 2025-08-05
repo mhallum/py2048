@@ -243,8 +243,47 @@ def test_starting_a_new_game(fake_user_data_folder: Path):
     assert EXIT_MESSAGE in loops[8]
 
 
-def test_resuming_game():
+def test_resuming_game(fake_user_data_folder_with_game: Path):
     """Test for resuming a game from the main menu."""
+
+    term = Terminal()
+    console = Console(record=True)
+    display = DisplayIO(term=term, console=console)
+    bus = bootstrap(
+        uow=JsonUnitOfWork(Path(fake_user_data_folder_with_game)), rng=Random(42)
+    )  # Using a fixed seed to make the game state predictable
+
+    side_effects: list[MagicMock | Keystroke] = []
+
+    # The user begins in the main menu and nagivates down to 'Resume Game'
+    side_effects.append(fake_key(KEY_DOWN, "KEY_DOWN"))
+
+    # The user presses enter to resume the game
+    side_effects.append(fake_key(KEY_ENTER, "KEY_ENTER"))
+
+    # The user decides to finish the game another time
+    # The user presses 'q' to exit the game
+    # The user navigates the menu to select 'Exit'
+    side_effects.append(Keystroke("q"))
+    side_effects.append(fake_key(KEY_UP, "KEY_UP"))
+    side_effects.append(fake_key(KEY_ENTER, "KEY_ENTER"))
+
+    with patch.object(term, "inkey", side_effect=side_effects):
+        run_cli(bus=bus, display=display, test_mode=True)
+        raw_output = console.export_text()
+    loops = split_console_output_loops(raw_output, LOOP_TERMINATION_DELIMITER)
+
+    # Assert that Resume Game is selected after navigating down in the menu
+    assert "➤ Resume Game" in loops[1]
+
+    # Assert that the game screen with the saved game is displayed after pressing enter
+    expected_game_screen = GameScreen(
+        grid=((0, 0, 0, 0), (0, 0, 2, 0), (0, 0, 0, 4), (0, 0, 4, 2)),
+        score=8,
+        high_score=0,
+    )
+    game_screen = GameScreen.from_output(loops[2])
+    assert game_screen == expected_game_screen
 
 
 # Add test for other key presses

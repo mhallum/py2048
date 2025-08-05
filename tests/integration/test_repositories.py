@@ -38,7 +38,7 @@ class TestJsonGameRepository:
     def test_can_get_existing_game(fake_user_data_folder_with_game: Path):
         """Test retrieving an existing game from the JSON repository."""
         repository = JsonGameRepository(folder=fake_user_data_folder_with_game)
-        game_id = "test_game"
+        game_id = "current_game"
         game = repository.get(game_id)
         assert isinstance(game, Py2048Game)
         assert game.game_id == game_id

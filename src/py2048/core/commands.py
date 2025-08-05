@@ -22,3 +22,10 @@ class MakeMove(Command):
 
     game_id: str
     direction: str
+
+
+@dataclass
+class ResumeGame(Command):
+    """Command to resume a game."""
+
+    game_id: str

@@ -1,6 +1,6 @@
 [
     {
-        "game_id": "test_game",
+        "game_id": "current_game",
         "state": {
             "board": {
                 "grid": [
