@@ -9,6 +9,7 @@ from functools import partial
 from random import Random
 from typing import Any
 
+from py2048.adapters.notifications import AbstractNotifications
 from py2048.service_layer import handlers, messagebus, unit_of_work
 
 
@@ -18,6 +19,7 @@ def bootstrap(
     | None = None,
     command_handlers: dict[type[handlers.commands.Command], Callable[..., None]]
     | None = None,
+    notifications: AbstractNotifications | None = None,
     rng: Random | None = None,
 ) -> messagebus.MessageBus:
     """Create and configure a MessageBus with injected dependencies.
@@ -32,6 +34,8 @@ def bootstrap(
             If None, uses default handlers.
         command_handlers (dict[type[handlers.commands.Command], Callable[..., None]], optional):
             A mapping of command types to command handler functions. If None, uses default handlers.
+        notifications (AbstractNotifications, optional): An instance of a notification handler.
+            If provided, it will be used to send notifications.
         rng (Random, optional): A random number generator to be injected into handlers that require
             it. Useful for deterministic behavior in tests.
 
@@ -43,7 +47,7 @@ def bootstrap(
     if command_handlers is None:
         command_handlers = handlers.COMMAND_HANDLERS
 
-    dependencies: dict[str, Any] = {"uow": uow}
+    dependencies: dict[str, Any] = {"uow": uow, "notifications": notifications}
     if rng is not None:
         dependencies["rng"] = rng
 

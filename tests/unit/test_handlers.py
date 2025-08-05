@@ -6,6 +6,7 @@ import random
 from collections.abc import Iterable
 
 from py2048 import bootstrap
+from py2048.adapters.notifications import AbstractNotifications
 from py2048.adapters.repositories import AbstractGameRepository
 from py2048.core import commands, models
 from py2048.service_layer.unit_of_work import AbstractUnitOfWork
@@ -46,11 +47,23 @@ class FakeUnitOfWork(AbstractUnitOfWork):
         # No-op for the fake unit of work
 
 
+class FakeNotifications(AbstractNotifications):
+    """A fake notifications handler for testing purposes."""
+
+    def __init__(self):
+        self.sent: list[str] = []
+
+    def send(self, message: str) -> None:
+        """Simulate sending a notification."""
+        self.sent.append(message)
+
+
 def bootstrap_test_app():
     """Bootstrap a test application with a fake unit of work and seeded rng."""
     uow = FakeUnitOfWork()
+    notifications = FakeNotifications()
     rng = random.Random(42)  # Seeded RNG for reproducibility
-    return bootstrap.bootstrap(uow=uow, rng=rng)
+    return bootstrap.bootstrap(uow=uow, notifications=notifications, rng=rng)
 
 
 class TestCreateNewGame:
@@ -99,3 +112,35 @@ class TestMakeMove:
         assert game.state.board.grid != starting_board  # board updated
         expected_empty_tiles = 14  # 16 total tiles - 2 merged + 1 spawned
         assert len(game.state.board.empty_tile_positions) == expected_empty_tiles
+
+    @staticmethod
+    def test_notification_sent_on_game_over(test_game: models.Py2048Game):
+        """Test that a notification is sent when the game is over."""
+        fake_notifications = FakeNotifications()
+        bus = bootstrap.bootstrap(
+            uow=FakeUnitOfWork(),
+            notifications=fake_notifications,
+            rng=random.Random(42),
+        )
+        test_game = models.Py2048Game(
+            game_id="current_game",
+            state=models.GameState(
+                board=models.GameBoard(
+                    grid=(
+                        (2, 4, 8, 2),
+                        (4, 8, 4, 8),
+                        (2, 16, 8, 16),
+                        (8, 8, 4, 32),
+                    )
+                ),
+                score=104,
+            ),
+        )
+        bus.uow.games.add(test_game)
+        game_id = test_game.game_id
+
+        cmd = commands.MakeMove(game_id=game_id, direction="left")
+        bus.handle(cmd)
+        print(test_game.state.board.grid)
+        expected_message = "Game Over! Final score: 120"
+        assert expected_message in fake_notifications.sent

@@ -13,28 +13,19 @@ Usage:
 """
 
 import time
-from dataclasses import dataclass
 
-from blessed import Terminal
 from blessed.keyboard import Keystroke
-from rich.console import Console
 
 from py2048 import views
 from py2048.core import commands
 from py2048.interfaces.cli.constants import LOOP_TERMINATION_DELIMITER
+from py2048.interfaces.cli.display import DisplayIO
 from py2048.interfaces.cli.game_screen import GameScreen, InvalidGameScreenError
 from py2048.service_layer.messagebus import MessageBus
+from py2048.views import GameStatus
 
 TILE_WIDTH = 7  # Large enough to fit the largest possible tile value (131072)
 USER_INPUT_INSTRUCTIONS = "Press ↑ ↓ ← → to merge tiles | Esc/Q to quit"
-
-
-@dataclass
-class DisplayIO:
-    """Encapsulates the terminal and console for display purposes."""
-
-    term: Terminal
-    console: Console
 
 
 class CLIGameRunner:
@@ -112,6 +103,17 @@ class CLIGameRunner:
                 elif direction := self.get_direction_from_key(key):
                     cmd = commands.MakeMove(game_id=self.game_id, direction=direction)
                     self.bus.handle(cmd)
+                    if (
+                        views.game_status(game_id=self.game_id, uow=self.bus.uow)
+                        == GameStatus.OVER
+                    ):
+                        game_screen = GameScreen(
+                            **views.game_screen_values(
+                                game_id=self.game_id, uow=self.bus.uow
+                            )
+                        )
+                        game_screen.render(self.display.console)
+                        self.running = False
 
                 if self.test_mode:
                     self.display.console.print(LOOP_TERMINATION_DELIMITER)

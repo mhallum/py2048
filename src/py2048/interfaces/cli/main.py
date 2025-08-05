@@ -11,6 +11,7 @@ from rich.table import Table
 from rich.text import Text
 
 from py2048 import bootstrap
+from py2048.adapters.notifications import ConsoleNotifications
 from py2048.application.menu import Menu
 from py2048.config import get_user_data_folder
 from py2048.core import commands
@@ -146,10 +147,11 @@ def run_cli(
 
 
 if __name__ == "__main__":  # pragma: no cover
+    cli_display = DisplayIO(term=Terminal(), console=Console())
     run_cli(
-        bus=bootstrap.bootstrap(uow=JsonUnitOfWork(get_user_data_folder())),
-        display=DisplayIO(
-            term=Terminal(),
-            console=Console(),
+        bus=bootstrap.bootstrap(
+            uow=JsonUnitOfWork(get_user_data_folder()),
+            notifications=ConsoleNotifications(cli_display),
         ),
+        display=cli_display,
     )

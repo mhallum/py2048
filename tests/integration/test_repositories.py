@@ -16,28 +16,30 @@ class TestJsonGameRepository:
     """Test suite for the JsonGameRepository."""
 
     @staticmethod
-    def test_can_add_game(fake_user_data_folder_with_game: Path):
+    def test_can_add_game(fake_user_data_folder_with_game_1: Path):
         """Test adding and retrieving a game from the JSON repository."""
         game = Py2048Game.create_new_game(game_id="test_new_game")
-        repository = JsonGameRepository(folder=fake_user_data_folder_with_game)
+        repository = JsonGameRepository(folder=fake_user_data_folder_with_game_1)
         repository.add(game)
 
         retrieved_game = repository.get("test_new_game")
         assert retrieved_game == game
 
     @staticmethod
-    def test_get_non_existent_game_raises_error(fake_user_data_folder_with_game: Path):
+    def test_get_non_existent_game_raises_error(
+        fake_user_data_folder_with_game_1: Path,
+    ):
         """Test that trying to get a non-existent game raises a KeyError."""
-        repository = JsonGameRepository(folder=fake_user_data_folder_with_game)
+        repository = JsonGameRepository(folder=fake_user_data_folder_with_game_1)
         with pytest.raises(
             KeyError, match="Game with ID non_existent not found in repository."
         ):
             repository.get("non_existent")
 
     @staticmethod
-    def test_can_get_existing_game(fake_user_data_folder_with_game: Path):
+    def test_can_get_existing_game(fake_user_data_folder_with_game_1: Path):
         """Test retrieving an existing game from the JSON repository."""
-        repository = JsonGameRepository(folder=fake_user_data_folder_with_game)
+        repository = JsonGameRepository(folder=fake_user_data_folder_with_game_1)
         game_id = "current_game"
         game = repository.get(game_id)
         assert isinstance(game, Py2048Game)

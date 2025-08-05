@@ -446,6 +446,16 @@ class Py2048Game:
         # Update the game state
         self.state = GameState(board=shifted_board, score=updated_score)
 
+        # Check if the game is over after the move
+        if self.state.is_over:
+            self.events.append(
+                events.GameOver(
+                    game_id=self.game_id,
+                    score=self.state.score,
+                    final_grid=self.state.board.grid,
+                )
+            )
+
     def undo_last_move(self) -> None:
         """Undo the last move made in the game.
 
