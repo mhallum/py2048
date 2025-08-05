@@ -16,13 +16,11 @@ class Menu:
 
     def move_up(self):
         """Move the selection up in the menu."""
-        if self.index > 0:
-            self.index -= 1
+        self.index = (self.index - 1) % len(self.items)
 
     def move_down(self):
         """Move the selection down in the menu."""
-        if self.index < len(self.items) - 1:
-            self.index += 1
+        self.index = (self.index + 1) % len(self.items)
 
     @property
     def selected(self) -> str:
