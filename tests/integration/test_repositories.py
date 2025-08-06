@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from py2048.adapters.repositories import JsonGameRepository
+from py2048.adapters.repositories import JsonGameRepository, MissingGameError
 from py2048.core.models import Py2048Game
 
 FAKE_DATA_FOLDER: str = "fake_data_folder"
@@ -32,7 +32,7 @@ class TestJsonGameRepository:
         """Test that trying to get a non-existent game raises a KeyError."""
         repository = JsonGameRepository(folder=fake_user_data_folder_with_game_1)
         with pytest.raises(
-            KeyError, match="Game with ID non_existent not found in repository."
+            MissingGameError, match="Game with ID non_existent not found in repository."
         ):
             repository.get("non_existent")
 

@@ -11,6 +11,10 @@ from py2048.adapters.schemas import GameSchema
 from py2048.core.models import Py2048Game
 
 
+class MissingGameError(Exception):
+    """Exception raised when a game is not found in the repository."""
+
+
 class AbstractGameRepository(abc.ABC):
     """Abstract base class for game repositories."""
 
@@ -68,7 +72,7 @@ class JsonGameRepository(AbstractGameRepository):
 
         if game := self._games.get(game_id):
             return game
-        raise KeyError(f"Game with ID {game_id} not found in repository.")
+        raise MissingGameError(f"Game with ID {game_id} not found in repository.")
 
     def _load(self) -> None:
         """Load games from the JSON file into the repository."""

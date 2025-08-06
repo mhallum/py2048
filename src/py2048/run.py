@@ -5,39 +5,24 @@ from enum import Enum
 from typing import Literal
 
 import click
-from blessed import Terminal
-from rich.console import Console
 
-import py2048.interfaces.cli.main as cli_main
 import py2048.interfaces.gui.main as gui_main
 import py2048.interfaces.web.main as web_main
-from py2048 import config
-from py2048.adapters.notifications import ConsoleNotifications
 from py2048.bootstrap import bootstrap
-from py2048.interfaces.cli.runners import DisplayIO
-from py2048.service_layer.messagebus import MessageBus  # for type hinting
-from py2048.service_layer.unit_of_work import JsonUnitOfWork
+from py2048.interfaces.tui.app import Py2048TUIApp
 
 
 class Mode(str, Enum):
     """Enumeration for game modes."""
 
-    CLI = "cli"
+    TERM = "terminal"
     GUI = "gui"
     WEB = "web"
 
 
 CONTEXT_SETTINGS = {"help_option_names": ["-h", "--help"]}
 
-
-def bootstrap_cli_app(display: DisplayIO) -> MessageBus:
-    """Bootstrap the CLI application with necessary dependencies."""
-    uow = JsonUnitOfWork(config.get_user_data_folder())
-    notifications = ConsoleNotifications(display)
-    return bootstrap(
-        uow=uow,
-        notifications=notifications,
-    )
+bus = bootstrap()
 
 
 @click.command(context_settings=CONTEXT_SETTINGS)
@@ -48,19 +33,15 @@ def bootstrap_cli_app(display: DisplayIO) -> MessageBus:
     "-m",
     "--mode",
     type=click.Choice([m.value for m in Mode], case_sensitive=False),
-    default=Mode.CLI.value,
-    help="Select the mode to run the game: CLI, GUI, or Web.",
+    default=Mode.TERM.value,
+    help="Select the mode to run the game: terminal, gui, or web.",
 )
-def main(mode: Literal["cli", "gui", "web"] = "cli") -> None:
-    """Launch Py2048 in CLI, GUI, or Web mode."""
+def main(mode: Literal["terminal", "gui", "web"] = "terminal") -> None:
+    """Launch Py2048 in Terminal, GUI, or Web mode."""
     match Mode(mode.lower()):
-        case Mode.CLI:
-            display = DisplayIO(
-                term=Terminal(),
-                console=Console(),
-            )
-            bus = bootstrap_cli_app(display)
-            cli_main.run_cli(bus=bus, display=display)
+        case Mode.TERM:
+            app = Py2048TUIApp(bus=bus)
+            app.run()
         case Mode.GUI:
             gui_main.run_gui()
         case Mode.WEB:

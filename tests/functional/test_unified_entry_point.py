@@ -33,13 +33,13 @@ def test_version_option(flag: str):
     assert "version" in result.output
 
 
-def test_cli_mode_triggers_run_cli():
-    """Test that selecting CLI mode calls the CLI interface runner."""
-    with patch("py2048.interfaces.cli.main.run_cli") as mock_run_cli:
+def test_terminal_mode_launches_the_tui_app():
+    """Test that selecting terminal mode calls the TUI interface runner."""
+    with patch("py2048.interfaces.tui.app.Py2048TUIApp.run") as mock_run_tui:
         runner = CliRunner()
-        result = runner.invoke(main, ["--mode", "cli"])
+        result = runner.invoke(main, ["--mode", "terminal"])
         assert result.exit_code == 0
-        mock_run_cli.assert_called_once()
+        mock_run_tui.assert_called_once()
 
 
 def test_gui_mode_triggers_run_gui():

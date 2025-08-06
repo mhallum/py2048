@@ -9,17 +9,17 @@ from functools import partial
 from random import Random
 from typing import Any
 
-from py2048.adapters.notifications import AbstractNotifications
+from py2048 import config
 from py2048.service_layer import handlers, messagebus, unit_of_work
 
 
 def bootstrap(
-    uow: unit_of_work.AbstractUnitOfWork,
+    uow: unit_of_work.AbstractUnitOfWork | None = None,
     event_handlers: dict[type[handlers.events.Event], list[Callable[..., None]]]
     | None = None,
     command_handlers: dict[type[handlers.commands.Command], Callable[..., None]]
     | None = None,
-    notifications: AbstractNotifications | None = None,
+    # notifications: AbstractNotifications | None = None,
     rng: Random | None = None,
 ) -> messagebus.MessageBus:
     """Create and configure a MessageBus with injected dependencies.
@@ -28,26 +28,27 @@ def bootstrap(
     necessary dependencies like the Unit of Work into each handler function.
 
     Args:
-        uow (AbstractUnitOfWork): The unit of work to use.
+        uow (AbstractUnitOfWork): The unit of work to use. If None, uses default JsonUnitOfWork.
         event_handlers (dict[type[handlers.events.Event], list[Callable[..., None]]], optional):
             A mapping of event types to lists of event handler functions.
             If None, uses default handlers.
         command_handlers (dict[type[handlers.commands.Command], Callable[..., None]], optional):
             A mapping of command types to command handler functions. If None, uses default handlers.
-        notifications (AbstractNotifications, optional): An instance of a notification handler.
-            If provided, it will be used to send notifications.
         rng (Random, optional): A random number generator to be injected into handlers that require
             it. Useful for deterministic behavior in tests.
 
     Returns:
         MessageBus: A fully wired MessageBus instance.
     """
+    if uow is None:
+        uow = unit_of_work.JsonUnitOfWork(config.get_user_data_folder())
     if event_handlers is None:
         event_handlers = handlers.EVENT_HANDLERS
     if command_handlers is None:
         command_handlers = handlers.COMMAND_HANDLERS
 
-    dependencies: dict[str, Any] = {"uow": uow, "notifications": notifications}
+    # dependencies: dict[str, Any] = {"uow": uow, "notifications": notifications}
+    dependencies: dict[str, Any] = {"uow": uow}
     if rng is not None:
         dependencies["rng"] = rng
 

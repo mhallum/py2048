@@ -4,7 +4,6 @@ import logging
 from collections.abc import Callable
 from random import Random
 
-from py2048.adapters.notifications import AbstractNotifications
 from py2048.core import commands, events
 from py2048.core.models import MoveDirection, Py2048Game
 from py2048.service_layer.unit_of_work import AbstractUnitOfWork
@@ -38,16 +37,8 @@ def make_move(
         uow.commit()
 
 
-def notify_game_over(
-    event: events.GameOver, notifications: AbstractNotifications
-) -> None:
-    """Handler for notifying when the game is over."""
-    notifications.send(f"Game Over! Final score: {event.score}")
-
-
 EVENT_HANDLERS: dict[type[events.Event], list[Callable[..., None]]] = {
     events.NewGameStarted: [log_new_game_event],
-    events.GameOver: [notify_game_over],
 }
 
 COMMAND_HANDLERS: dict[type[commands.Command], Callable[..., None]] = {

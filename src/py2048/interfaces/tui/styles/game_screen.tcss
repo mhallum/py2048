@@ -1,0 +1,11 @@
+#board-container{
+    align: center middle;
+    padding: 0;
+    margin: 0;
+    border: round $primary;
+}
+
+ScoreBoard{
+    align: center middle;
+    content-align: center middle;
+}

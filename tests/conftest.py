@@ -7,6 +7,10 @@ from pyfakefs.fake_filesystem import FakeFilesystem
 
 from py2048.core import models
 
+PATH_TO_TCSS_FILES: Path = Path(__file__).parent.parent.joinpath(
+    "src", "py2048", "interfaces", "tui", "styles"
+)
+
 
 def load_fake_game_data(filename: str) -> str:
     """Load test game data from a JSON file."""
@@ -16,8 +20,42 @@ def load_fake_game_data(filename: str) -> str:
         return file.read()
 
 
+def load_tcss_files() -> dict[str, str]:
+    """Load all .tcss files from the styles directory."""
+    styles_dir = PATH_TO_TCSS_FILES
+    return {path.name: path.read_text() for path in styles_dir.glob("*.tcss")}
+
+
 fake_game_data_1 = load_fake_game_data("test_game_1.json")
 fake_game_data_2 = load_fake_game_data("test_game_2.json")
+
+tcss_files = load_tcss_files()
+
+
+@pytest.fixture
+def fake_styles_folder(fs: FakeFilesystem) -> Path:
+    """Fixture to provide a fake filesystem with .tcss files."""
+
+    path = PATH_TO_TCSS_FILES
+
+    fs.create_dir(path.as_posix())  # type: ignore
+
+    return path
+
+
+@pytest.fixture
+def fake_styles_folder_populated(
+    fs: FakeFilesystem,
+    fake_styles_folder: Path,  # pylint: disable=redefined-outer-name
+) -> Path:
+    """Fixture to provide a fake filesystem with .tcss files."""
+
+    for filename, content in tcss_files.items():
+        fs.create_file(  # type: ignore
+            fake_styles_folder.joinpath(filename).as_posix(), contents=content
+        )
+
+    return fake_styles_folder
 
 
 @pytest.fixture
