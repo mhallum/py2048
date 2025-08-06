@@ -42,17 +42,3 @@ def game_status(game_id: str, uow: unit_of_work.AbstractUnitOfWork) -> GameStatu
     if len(game.moves) == 0:
         return GameStatus.NEW
     return GameStatus.IN_PROGRESS
-
-
-def grid(
-    uow: unit_of_work.AbstractUnitOfWork, game_id: str = "current_game"
-) -> tuple[tuple[int, ...], ...]:
-    """Get the current grid of the game."""
-    with uow:
-        game = uow.games.get(game_id)
-        results = (
-            game.state.board.grid
-            if game
-            else ((0, 0, 0, 0), (0, 0, 0, 0), (0, 0, 0, 0), (0, 0, 0, 0))
-        )
-    return results
