@@ -1,0 +1,28 @@
+Screen {
+    align: center middle;
+}
+
+#main-menu-options {
+    border: round $foreground;
+    width: auto;
+    background: transparent;
+}
+
+#main-menu-container {
+    align: center middle;
+    height: auto;
+    width: 100%;
+}
+
+#main-menu-title {
+    align: center middle;
+    text-align: center;
+    width: 100%;
+}
+
+#welcome-label{
+    align: center middle;
+    text-align: center;
+    width: 100%;
+    padding: 2;
+}

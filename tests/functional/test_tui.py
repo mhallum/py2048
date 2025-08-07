@@ -5,6 +5,8 @@ from random import Random
 from typing import cast
 
 import pytest
+from textual.widgets import OptionList
+from textual.widgets.option_list import Option
 
 from py2048.bootstrap import bootstrap
 from py2048.interfaces.tui.app import Py2048TUIApp
@@ -39,6 +41,16 @@ def get_displayed_high_score(app: Py2048TUIApp) -> int:
     return int(app.screen.query_one("#high-score #value-part").renderable)  # type: ignore
 
 
+def get_resume_game_option(app: Py2048TUIApp) -> Option:
+    """Get the 'Resume Game' option from the main menu."""
+    option_list = app.screen.query_one("#main-menu-options", OptionList)
+    resume_game_id = "resume-game"
+    for option in option_list.options:
+        if option.id == resume_game_id:
+            return option
+    raise ValueError("Resume Game option not found in the main menu.")
+
+
 @pytest.mark.functional
 @pytest.mark.asyncio
 async def test_playing_new_game(
@@ -59,6 +71,23 @@ async def test_playing_new_game(
     async with app.run_test() as pilot:
         # The user is presented with the main menu
         assert get_main_menu_screen(app).is_active
+
+        # The user sees the welcome message
+        welcome_message = "Welcome to Py2048!"
+        assert (
+            app.screen.query_one("#welcome-label").renderable  # type: ignore
+            == welcome_message
+        )  # type: ignore
+
+        # The user sees the main menu title
+        main_menu_title = "Main Menu"
+        assert (
+            app.screen.query_one("#main-menu-title").renderable  # type: ignore
+            == main_menu_title
+        )
+
+        # The user sees that "Resume Game" is disabled
+        assert get_resume_game_option(app).disabled is True
 
         # The user selects 'New Game'
         await pilot.press("enter")
@@ -149,6 +178,9 @@ async def test_playing_new_game(
 
         # The user is back in the main menu
         assert get_main_menu_screen(app).is_active
+
+        # The user sees that "Resume Game" is now enabled
+        assert get_resume_game_option(app).disabled is False
 
         # The user navigates to "Exit" and selects it
         await pilot.press("down")
