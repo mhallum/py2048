@@ -37,6 +37,7 @@ pre-commit = "^4.2.0"
 pytest-cov = "^6.2.1"
 hypothesis = "^6.136.7"
 pyfakefs = "^5.9.2"
+textual-dev = "^1.7.0"
 
 
 [tool.pytest.ini_options]
