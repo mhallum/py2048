@@ -38,21 +38,6 @@ class GameBoard(Static):
         self.render_board()
 
 
-class ScoreBoard(Static):
-    """A widget to display the score and high score."""
-
-    def __init__(self, score: int, high_score: int) -> None:
-        super().__init__()
-        self.score = score
-        self.high_score = high_score
-
-    def update_scores(self, score: int, high_score: int) -> None:
-        """Update the display with the current score and high score."""
-        self.score = score
-        self.high_score = high_score
-        self.update(f"Score: {score} \n Best: {high_score}")
-
-
 class LabelValue(Horizontal):
     """A simple label-value pair widget."""
 
@@ -70,3 +55,8 @@ class LabelValue(Horizontal):
         yield Label(f"{self._label_text}:", id="label-part")
         yield Label(" ", id="spacer")
         yield Label(self._value_text, id="value-part")
+
+    def update_value(self, new_value: str | int | float) -> None:
+        """Update the value displayed."""
+        value_label = self.query_one("#value-part", Label)
+        value_label.update(str(new_value))

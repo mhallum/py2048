@@ -8,7 +8,7 @@ from textual.widgets import Footer, Header
 from py2048 import views
 from py2048.core import commands
 from py2048.interfaces.tui.screens.game_over_screen import GameOverScreen
-from py2048.interfaces.tui.widgets import GameBoard, ScoreBoard
+from py2048.interfaces.tui.widgets import GameBoard, LabelValue
 from py2048.service_layer.messagebus import MessageBus
 
 
@@ -34,15 +34,15 @@ class GameScreen(Screen[None]):
         initial_values: views.GameScreenDTO = views.game_screen_values(
             uow=self.bus.uow, game_id="current_game"
         )
+        self._score = initial_values.score
+        self._high_score = initial_values.high_score
         self.board: GameBoard = GameBoard(grid=initial_values.grid)
-        self.scores: ScoreBoard = ScoreBoard(
-            score=initial_values.score,
-            high_score=initial_values.high_score,
-        )
 
     def compose(self) -> ComposeResult:
         yield Header()
-        yield Container(self.scores, self.board, id="board-container")
+        yield LabelValue(label="Score", value=self._score, id="current-score")
+        yield LabelValue(label="Best", value=self._high_score, id="high-score")
+        yield Container(self.board, id="board-container")
         yield Footer()
 
     async def action_move(self, direction: str) -> None:
@@ -53,12 +53,19 @@ class GameScreen(Screen[None]):
             uow=self.bus.uow, game_id="current_game"
         )
         self.board.update_board(updated_values.grid)
-        self.scores.update_scores(
-            score=updated_values.score, high_score=updated_values.high_score
-        )
+        self.update_score(updated_values.score)
+
         if updated_values.status == views.GameStatus.OVER:
-            await self.app.push_screen(GameOverScreen(updated_values.score))  # type: ignore
+            await self.app.push_screen(  # type: ignore
+                GameOverScreen(final_score=updated_values.score)
+            )
 
     async def action_quit(self) -> None:
         """Quit to the main menu."""
         await self.app.pop_screen()  # type: ignore
+
+    def update_score(self, score: int) -> None:
+        """Update the score display."""
+        self._score = score
+        score_label = self.query_one("#current-score", LabelValue)
+        score_label.update_value(score)

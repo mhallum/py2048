@@ -25,6 +25,20 @@ def get_main_menu_screen(app: Py2048TUIApp) -> MainMenu:
     return cast(MainMenu, app.get_screen("main_menu"))  # type: ignore
 
 
+def get_displayed_score(app: Py2048TUIApp) -> int:
+    """Get the score displayed in the app."""
+    if not isinstance(app.screen, GameScreen):
+        raise ValueError("Current screen is not a GameScreen.")
+    return int(app.screen.query_one("#current-score #value-part").renderable)  # type: ignore
+
+
+def get_displayed_high_score(app: Py2048TUIApp) -> int:
+    """Get the high score displayed in the app."""
+    if not isinstance(app.screen, GameScreen):
+        raise ValueError("Current screen is not a GameScreen.")
+    return int(app.screen.query_one("#high-score #value-part").renderable)  # type: ignore
+
+
 @pytest.mark.functional
 @pytest.mark.asyncio
 async def test_playing_new_game(
@@ -60,9 +74,9 @@ async def test_playing_new_game(
             (0, 0, 0, 0),
         )
         # The user can see the score board with initial score 0
-        assert app.screen.scores.score == 0
+        assert get_displayed_score(app) == 0
         # The user can see the high score board with initial high score 0
-        assert app.screen.scores.high_score == 0
+        assert get_displayed_high_score(app) == 0
 
         # The user moves up
         await pilot.press("up")
@@ -75,9 +89,9 @@ async def test_playing_new_game(
             (0, 0, 0, 0),
         )  # a new tile is spawned after the move
         # The score is updated after the move
-        assert app.screen.scores.score == 0  # no score change since no tiles merged
+        assert get_displayed_score(app) == 0  # no score change since no tiles merged
         # The high score remains unchanged
-        assert app.screen.scores.high_score == 0
+        assert get_displayed_high_score(app) == 0
 
         # The user moves down
         await pilot.press("down")
@@ -90,9 +104,9 @@ async def test_playing_new_game(
             (2, 2, 0, 2),
         )  # The board has shifted down and spawned a new tile
         # The score is updated after the move
-        assert app.screen.scores.score == 0  # no score change since no tiles merged
+        assert get_displayed_score(app) == 0  # no score change since no tiles merged
         # The high score remains unchanged
-        assert app.screen.scores.high_score == 0
+        assert get_displayed_high_score(app) == 0
 
         # The user moves left
         await pilot.press("left")
@@ -107,11 +121,9 @@ async def test_playing_new_game(
         # The board has shifted left (merging the 2s) and spawned a new tile
         # The score is updated after the move
         expected_score = 4  # score increased by 4 from merging tiles
-        assert (
-            app.screen.scores.score == expected_score
-        )  # score increased by 4 from merging tiles
+        assert get_displayed_score(app) == expected_score
         # The high score remains unchanged
-        assert app.screen.scores.high_score == 0
+        assert get_displayed_high_score(app) == 0
 
         # the user moves right
         await pilot.press("right")
@@ -125,9 +137,12 @@ async def test_playing_new_game(
         )  # The board has shifted right (merging the 2s) and spawned a new tile
         # The score is updated after the move
         expected_score = 8  # score increased by 4 from merging tiles
-        assert app.screen.scores.score == expected_score
+        assert get_displayed_score(app) == expected_score
+
         # The high score remains unchanged
-        assert app.screen.scores.high_score == 0
+        assert app.screen.query_one("#high-score #value-part").renderable == str(  # type: ignore
+            0
+        )
 
         # The user decides to quit the game
         await pilot.press("q")
@@ -181,9 +196,9 @@ async def test_resuming_game(
         )
         # The user can see the score board with the score from the saved game
         expected_score = 8  ## score from the saved game
-        assert app.screen.scores.score == expected_score
+        assert get_displayed_score(app) == expected_score
         # The user can see the high score board with the high score from the saved game
-        assert app.screen.scores.high_score == 0
+        assert get_displayed_high_score(app) == 0
 
         # The user decides to finish the game another day.
         await pilot.press("q")
