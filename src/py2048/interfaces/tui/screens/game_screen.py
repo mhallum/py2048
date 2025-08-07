@@ -31,28 +31,29 @@ class GameScreen(Screen[None]):
         super().__init__()
         self.bus = bus
 
-        initial_values: views.GameScreenValues = self._get_initial_game_screen_values()
-        self.board: GameBoard = GameBoard(grid=initial_values["grid"])
+        initial_values: views.GameScreenDTO = self._get_initial_game_screen_values()
+        self.board: GameBoard = GameBoard(grid=initial_values.grid)
         self.scores: ScoreBoard = ScoreBoard(
-            score=initial_values["score"],
-            high_score=initial_values["high_score"],
+            score=initial_values.score,
+            high_score=initial_values.high_score,
         )
 
-    def _get_initial_game_screen_values(self) -> views.GameScreenValues:
+    def _get_initial_game_screen_values(self) -> views.GameScreenDTO:
         """Retrieve initial game screen values."""
         try:
             return views.game_screen_values(uow=self.bus.uow, game_id="current_game")
         except MissingGameError:
-            return {
-                "grid": (
+            return views.GameScreenDTO(
+                grid=(
                     (0, 0, 0, 0),
                     (0, 0, 0, 0),
                     (0, 0, 0, 0),
                     (0, 0, 0, 0),
                 ),
-                "score": 0,
-                "high_score": 0,
-            }
+                score=0,
+                high_score=0,
+                status=views.GameStatus.NEW,
+            )
 
     def compose(self) -> ComposeResult:
         """Create child widgets"""
@@ -67,9 +68,9 @@ class GameScreen(Screen[None]):
         updated_values = views.game_screen_values(
             uow=self.bus.uow, game_id="current_game"
         )
-        self.board.update_board(updated_values["grid"])
+        self.board.update_board(updated_values.grid)
         self.scores.update_scores(
-            score=updated_values["score"], high_score=updated_values["high_score"]
+            score=updated_values.score, high_score=updated_values.high_score
         )
 
     async def action_quit(self) -> None:

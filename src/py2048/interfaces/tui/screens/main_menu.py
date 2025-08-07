@@ -44,11 +44,11 @@ class MainMenu(Screen[None]):
                     uow=self.bus.uow, game_id="current_game"
                 )
                 self.app.get_screen("game").board.update_board(  # type: ignore
-                    updated_values["grid"]
+                    updated_values.grid
                 )
                 self.app.get_screen("game").scores.update_scores(  # type: ignore
-                    score=updated_values["score"],
-                    high_score=updated_values["high_score"],
+                    score=updated_values.score,
+                    high_score=updated_values.high_score,
                 )
                 self.app.switch_screen("game")  # type: ignore
             case "resume-game":
