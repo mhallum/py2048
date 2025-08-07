@@ -1,4 +1,12 @@
-"""Main menu screen for the TUI application."""
+"""Main menu screen for the Py2048 TUI application.
+
+This module defines the `MainMenu` class, which renders the initial interface
+for the terminal-based version of Py2048. It provides users with a keyboard-
+navigable menu to start a new game, resume an existing one, or exit the application.
+
+Classes:
+    MainMenu: The main screen presented to the user at startup.
+"""
 
 from textual.app import ComposeResult
 from textual.containers import Container
@@ -29,12 +37,16 @@ class MainMenu(Screen[None]):
     ]
 
     def __init__(self, bus: MessageBus) -> None:
+        """Initialize the main menu screen.
+        Args:
+            bus (MessageBus): The message bus used to communicate with the domain layer.
+        """
+
         super().__init__()
         self.bus = bus
         self._resume_game_disabled = not self._has_resume_game()
 
     def compose(self) -> ComposeResult:
-        """Create the main menu layout."""
         yield Header()
         yield Label("Welcome to Py2048!", id="welcome-label")
         yield Label("Main Menu", id="main-menu-title")
@@ -71,7 +83,11 @@ class MainMenu(Screen[None]):
                 self.app.bell()
 
     def _has_resume_game(self) -> bool:
-        """Check if there is a game to resume."""
+        """Determine whether there is a game in progress that can be resumed.
+
+        Returns:
+            bool: True if a current game exists and can be resumed, False otherwise.
+        """
         try:
             self.bus.uow.games.get("current_game")
         except MissingGameError:
