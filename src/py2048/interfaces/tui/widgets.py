@@ -3,7 +3,9 @@
 from rich import box
 from rich.align import Align
 from rich.table import Table
-from textual.widgets import Static
+from textual.app import ComposeResult
+from textual.containers import Horizontal
+from textual.widgets import Label, Static
 
 
 class GameBoard(Static):
@@ -44,12 +46,27 @@ class ScoreBoard(Static):
         self.score = score
         self.high_score = high_score
 
-    # def on_mount(self) -> None:
-    #     """Initialize the score display."""
-    #     self.update_scores()
-
     def update_scores(self, score: int, high_score: int) -> None:
         """Update the display with the current score and high score."""
         self.score = score
         self.high_score = high_score
         self.update(f"Score: {score} \n Best: {high_score}")
+
+
+class LabelValue(Horizontal):
+    """A simple label-value pair widget."""
+
+    def __init__(
+        self,
+        label: str,
+        value: str | int | float,
+        **kwargs,  # type: ignore
+    ) -> None:
+        super().__init__(**kwargs)  # type: ignore
+        self._label_text = label
+        self._value_text = str(value)
+
+    def compose(self) -> ComposeResult:
+        yield Label(f"{self._label_text}:", id="label-part")
+        yield Label(" ", id="spacer")
+        yield Label(self._value_text, id="value-part")

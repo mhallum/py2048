@@ -6,8 +6,8 @@ from textual.screen import Screen
 from textual.widgets import Footer, Header
 
 from py2048 import views
-from py2048.adapters.repositories import MissingGameError
 from py2048.core import commands
+from py2048.interfaces.tui.screens.game_over_screen import GameOverScreen
 from py2048.interfaces.tui.widgets import GameBoard, ScoreBoard
 from py2048.service_layer.messagebus import MessageBus
 
@@ -31,32 +31,16 @@ class GameScreen(Screen[None]):
         super().__init__()
         self.bus = bus
 
-        initial_values: views.GameScreenDTO = self._get_initial_game_screen_values()
+        initial_values: views.GameScreenDTO = views.game_screen_values(
+            uow=self.bus.uow, game_id="current_game"
+        )
         self.board: GameBoard = GameBoard(grid=initial_values.grid)
         self.scores: ScoreBoard = ScoreBoard(
             score=initial_values.score,
             high_score=initial_values.high_score,
         )
 
-    def _get_initial_game_screen_values(self) -> views.GameScreenDTO:
-        """Retrieve initial game screen values."""
-        try:
-            return views.game_screen_values(uow=self.bus.uow, game_id="current_game")
-        except MissingGameError:
-            return views.GameScreenDTO(
-                grid=(
-                    (0, 0, 0, 0),
-                    (0, 0, 0, 0),
-                    (0, 0, 0, 0),
-                    (0, 0, 0, 0),
-                ),
-                score=0,
-                high_score=0,
-                status=views.GameStatus.NEW,
-            )
-
     def compose(self) -> ComposeResult:
-        """Create child widgets"""
         yield Header()
         yield Container(self.scores, self.board, id="board-container")
         yield Footer()
@@ -72,7 +56,9 @@ class GameScreen(Screen[None]):
         self.scores.update_scores(
             score=updated_values.score, high_score=updated_values.high_score
         )
+        if updated_values.status == views.GameStatus.OVER:
+            await self.app.push_screen(GameOverScreen(updated_values.score))  # type: ignore
 
     async def action_quit(self) -> None:
         """Quit to the main menu."""
-        self.app.switch_screen("main_menu")  # type: ignore
+        await self.app.pop_screen()  # type: ignore

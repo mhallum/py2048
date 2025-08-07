@@ -4,8 +4,3 @@
     margin: 0;
     border: round $primary;
 }
-
-ScoreBoard{
-    align: center middle;
-    content-align: center middle;
-}

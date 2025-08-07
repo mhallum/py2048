@@ -3,7 +3,7 @@
 from textual.app import App
 
 from py2048.bootstrap import bootstrap
-from py2048.interfaces.tui.screens import GameScreen, MainMenu
+from py2048.interfaces.tui.screens import MainMenu
 from py2048.service_layer.messagebus import MessageBus  # for type hinting
 
 
@@ -24,7 +24,8 @@ class Py2048TUIApp(App[None]):
     def on_mount(self) -> None:
         """Initialize the application."""
         self.install_screen(MainMenu(bus=self.bus), name="main_menu")  # type: ignore
-        self.install_screen(GameScreen(bus=self.bus), name="game")  # type: ignore
+        # self.install_screen(GameScreen(bus=self.bus), name="game")  # type: ignore
+        # self.install_screen(GameOverScreen(bus=self.bus), name="game_over")  # type: ignore
         self.push_screen("main_menu")
 
     async def action_quit(self) -> None:
@@ -32,7 +33,7 @@ class Py2048TUIApp(App[None]):
         self.exit()
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     # Launch the Py2048 TUI app when run directly
     app = Py2048TUIApp()
     app.run()

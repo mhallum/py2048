@@ -4,8 +4,8 @@ from textual.app import ComposeResult
 from textual.screen import Screen
 from textual.widgets import Footer, Header, Label, ListItem, ListView
 
-from py2048 import views
 from py2048.core import commands
+from py2048.interfaces.tui.screens.game_screen import GameScreen
 from py2048.service_layer.messagebus import MessageBus  # for type hinting
 
 
@@ -40,20 +40,11 @@ class MainMenu(Screen[None]):
             case "new-game":
                 cmd = commands.StartNewGame(game_id="current_game")
                 self.bus.handle(cmd)
-                updated_values = views.game_screen_values(
-                    uow=self.bus.uow, game_id="current_game"
-                )
-                self.app.get_screen("game").board.update_board(  # type: ignore
-                    updated_values.grid
-                )
-                self.app.get_screen("game").scores.update_scores(  # type: ignore
-                    score=updated_values.score,
-                    high_score=updated_values.high_score,
-                )
-                self.app.switch_screen("game")  # type: ignore
+                await self.app.push_screen(GameScreen(bus=self.bus))  # type: ignore
             case "resume-game":
-                self.app.switch_screen("game")  # type: ignore
+                await self.app.push_screen(GameScreen(bus=self.bus))  # type: ignore
             case "exit":
                 self.app.exit()
-            case _:
-                self.app.bell()  # fallback
+            case _:  # pragma: no cover
+                # fallback just in case no valid selection is made, but it should not happen.
+                self.app.bell()

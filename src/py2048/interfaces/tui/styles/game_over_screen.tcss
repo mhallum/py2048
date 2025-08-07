@@ -1,0 +1,24 @@
+GameOverScreen{
+    align-vertical: middle;
+    align-horizontal: center;
+}
+
+
+#game-over-title{
+    width: 100%;
+    text-align: center;
+    align: center middle;
+    padding: 1;
+}
+
+#final-score{
+    width: 100%;
+    height: auto;
+    align: center middle;
+}
+
+#game-over-instructions{
+    width: 100%;
+    text-align: center;
+    padding: 1;
+}
