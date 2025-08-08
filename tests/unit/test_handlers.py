@@ -4,6 +4,9 @@
 
 import random
 from collections.abc import Iterable
+from pprint import pformat
+
+import pytest
 
 from py2048 import bootstrap
 from py2048.adapters.repositories import AbstractGameRepository
@@ -64,6 +67,7 @@ def bootstrap_test_app():
     return bootstrap.bootstrap(uow=uow, rng=rng)
 
 
+# TODO: add tests to make sure game is created correctly
 class TestCreateNewGame:
     """Test suite for creating a new game."""
 
@@ -84,33 +88,115 @@ class TestMakeMove:
     """Test suite for making a move in the game."""
 
     @staticmethod
-    def test_make_move(test_game: models.Py2048Game):
-        """Test making a move using the make_move handler."""
+    def test_move_is_added_to_history(test_game: models.Py2048Game):
+        """Test that move is added to the game's move history after successful completion."""
+
+        # test_game is a game with initially no moves recorded
+        initial_num_moves = len(test_game.moves)  # 0
+
         bus = bootstrap_test_app()
-
-        # Add the test game to the in-memory unit of work.
-        # The test_game fixture creates a game with a specific board state
-        # so we can test the move functionality
-        # the score is initialized to 0, there are no recorded moves.
-        # and the board has two tiles with value 2 in the same column
-        # This means that an upward move will merge them
-        # and the score will increase by 4.
-
         bus.uow.games.add(test_game)
         game_uuid = test_game.game_uuid
-        starting_board = test_game.state.board.grid
 
-        # Make an initial move
-        bus.handle(commands.MakeMove(game_uuid=game_uuid, direction="up"))
+        move_direction = "up"
+        bus.handle(commands.MakeMove(game_uuid=game_uuid, direction=move_direction))
 
-        # Verify that the move was processed
-        game = bus.uow.games.get_by_uuid(game_uuid)
-        assert game is not None
-        assert len(game.moves) == 1  # move recorded
-        expected_direction = "up"
-        assert game.moves[0].direction == expected_direction  # correct move recorded
-        expected_score = 4  # 2 + 2 from the merge
-        assert game.state.score == expected_score  # score updated
-        assert game.state.board.grid != starting_board  # board updated
-        expected_empty_tiles = 14  # 16 total tiles - 2 merged + 1 spawned
-        assert len(game.state.board.empty_tile_positions) == expected_empty_tiles
+        assert len(test_game.moves) == initial_num_moves + 1
+        assert test_game.moves[-1].direction == move_direction
+
+    # TODO: test_no_tile_is_spawned_if_board_does_not_change
+
+    # TODO: test_move_that_makes_no_changes_does_not_add_to_history
+
+    # TODO: test_move_on_non_existent_game_raises_error
+
+    # TODO: test_that_move_handler_commits
+
+    # TODO: test_that_correct_move_is_added_to_history
+
+    @pytest.mark.parametrize(
+        "move_direction, expected_gain",
+        [
+            # moving up merges two tiles with value 2 into a single tile with value 4
+            # so gain is 4
+            ("up", 4),
+            # moving down merges two tiles with value 2 into a single tile with value 4
+            # so gain is 4
+            ("down", 4),
+            # moving left does not merge any tiles, so gain is 0
+            ("left", 0),
+            # moving right does not merge any tiles, so gain is 0
+            ("right", 0),
+        ],
+    )
+    @staticmethod
+    def test_move_updates_score(
+        test_game: models.Py2048Game, move_direction: str, expected_gain: int
+    ):
+        """Test that making a move updates the score correctly."""
+
+        # test_game is a game with an initial score of 0
+        initial_score = test_game.state.score
+
+        bus = bootstrap_test_app()
+        bus.uow.games.add(test_game)
+        game_uuid = test_game.game_uuid
+
+        bus.handle(commands.MakeMove(game_uuid=game_uuid, direction=move_direction))
+
+        assert test_game.state.score == initial_score + expected_gain
+
+    # TODO: test_move_updates_board
+
+    @pytest.mark.parametrize(
+        "move_direction, expected_updated_board",
+        [
+            # moving up merges two tiles with value 2 into a single tile with value 4
+            # and spawns a new tile
+            ("up", ((0, 0, 0, 4), (0, 0, 0, 0), (0, 0, 0, 2), (0, 0, 0, 0))),
+            # moving down merges two tiles with value 2 into a single tile with value 4
+            # and spawns a new tile
+            ("down", ((0, 0, 0, 0), (0, 0, 0, 0), (0, 0, 2, 0), (0, 0, 0, 4))),
+            # moving left shifts the tiles, but does not merge any tiles
+            # a new tile is spawned
+            ("left", ((2, 0, 0, 0), (0, 0, 0, 0), (2, 0, 0, 0), (2, 0, 0, 0))),
+            # board cannot change by moving right since there are no tiles to merge or move
+            # no tiles are spawned
+            ("right", ((0, 0, 0, 2), (0, 0, 0, 0), (0, 0, 0, 2), (0, 0, 0, 0))),
+        ],
+    )
+    @staticmethod
+    def test_move_updates_board(
+        test_game: models.Py2048Game,
+        move_direction: str,
+        expected_updated_board: tuple[tuple[int, ...], ...],
+    ):
+        """Test that making a move updates the game board correctly.
+
+        Test that the make_move handler updates the game board according to the rules of 2048.
+        i.e., if the move results in a merge, the tiles should be combined and a new tile spawned.
+        If the move does not result in a merge, the tiles should shift without merging,
+        and a new tile should be spawned.
+        If the move results in a merge, the tiles should be combined and a new tile spawned.
+        If there is no space for the tiles to move in the given direction, and no tiles
+        can be merged, the board should remain unchanged, and no new tile should be spawned.
+        """
+
+        bus = bootstrap_test_app()
+        bus.uow.games.add(test_game)
+        game_uuid = test_game.game_uuid
+
+        bus.handle(commands.MakeMove(game_uuid=game_uuid, direction=move_direction))
+
+        result = test_game.state.board.grid
+        assert result == expected_updated_board, (
+            f"For move: {move_direction}\n"
+            f"Expected:\n{pformat(expected_updated_board)}\n"
+            f"Got:\n{pformat(result)}"
+        )
+
+    # TODO: test_that_making_a_move_on_an_already_ended_game_raises_error
+
+    # TODO: test_that_making_a_move_on_a_game_with_no_tiles_raises_error
+
+    # TODO: test_that_move_is_logged
