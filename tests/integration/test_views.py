@@ -10,7 +10,7 @@ def test_game_screen_values_view(fake_user_data_folder_with_game_1: Path):
     """Test the game_screen_values view."""
     bus = bootstrap.bootstrap(JsonUnitOfWork(fake_user_data_folder_with_game_1))
 
-    screen_values = views.game_screen_values("current_game", uow=bus.uow)
+    screen_values = views.query_game_screen_values_by_slot("current_game", uow=bus.uow)
 
     expected_grid = (
         (0, 0, 0, 0),
@@ -21,6 +21,7 @@ def test_game_screen_values_view(fake_user_data_folder_with_game_1: Path):
 
     expected_score = 8
 
+    assert screen_values is not None
     assert screen_values.grid == expected_grid
     assert screen_values.score == expected_score
     assert (

@@ -31,12 +31,24 @@ class GameScreen(Screen[None]):
         super().__init__()
         self.bus = bus
 
-        initial_values: views.GameScreenDTO = views.game_screen_values(
-            uow=self.bus.uow, game_id="current_game"
-        )
-        self._score = initial_values.score
-        self._high_score = initial_values.high_score
-        self.board: GameBoard = GameBoard(grid=initial_values.grid)
+        slot_id = "current_game"
+
+        if not (
+            initial_values := views.query_game_screen_values_by_slot(
+                slot_id, uow=self.bus.uow
+            )
+        ):
+            # Handle the case where the game is not found
+            self._score = 0
+            self._high_score = 0
+            self.board = GameBoard(
+                grid=((0, 0, 0, 0), (0, 0, 0, 0), (0, 0, 0, 0), (0, 0, 0, 0))
+            )  # Initialize with an empty board
+
+        else:
+            self._score = initial_values.score
+            self._high_score = initial_values.high_score
+            self.board = GameBoard(grid=initial_values.grid)
 
     def compose(self) -> ComposeResult:
         yield Header()
@@ -47,11 +59,20 @@ class GameScreen(Screen[None]):
 
     async def action_move(self, direction: str) -> None:
         """Handle the move action."""
-        cmd = commands.MakeMove(game_id="current_game", direction=direction)
+
+        # TODO: handle this in a view to avoid coupling ui layer to domain layer
+        game = self.bus.uow.games.get("current_game")
+        assert game is not None
+        game_uuid = game.game_uuid
+
+        cmd = commands.MakeMove(game_uuid=game_uuid, direction=direction)
         self.bus.handle(cmd)
-        updated_values = views.game_screen_values(
-            uow=self.bus.uow, game_id="current_game"
+        updated_values = views.query_game_screen_values_by_slot(
+            slot_id="current_game", uow=self.bus.uow
         )
+        assert (
+            updated_values is not None
+        )  # TODO: remove this assertions. Handle the case where the game is not found
         self.board.update_board(updated_values.grid)
         self.update_score(updated_values.score)
 

@@ -16,14 +16,18 @@ def start_new_game(
 ) -> None:
     """Handler for starting a new game."""
     with uow:
-        new_game = Py2048Game.create_new_game(cmd.game_id, rng=rng)
+        new_game = Py2048Game.create_new_game(cmd.slot_id, rng=rng)
+        if uow.games.get(cmd.slot_id) is not None:
+            uow.games.delete(cmd.slot_id)
         uow.games.add(new_game)
         uow.commit()
 
 
 def log_new_game_event(event: events.NewGameStarted) -> None:
     """Handler for logging the new game started event."""
-    logger.info("New game started: %s", event.game_id)
+    logger.info(
+        "New game (uuid: %s) started in slot %s", event.game_uuid, event.slot_id
+    )
 
 
 def make_move(
@@ -31,7 +35,8 @@ def make_move(
 ) -> None:
     """Handler for making a move in the game."""
     with uow:
-        game = uow.games.get(cmd.game_id)
+        if not (game := uow.games.get_by_uuid(cmd.game_uuid)):
+            raise ValueError(f"Game with UUID {cmd.game_uuid} not found.")
         direction = MoveDirection(cmd.direction)
         game.move(direction, rng=rng)
         uow.commit()

@@ -99,4 +99,4 @@ def test_game() -> models.Py2048Game:
         grid=((0, 0, 2, 0), (0, 0, 0, 0), (0, 0, 2, 0), (0, 0, 0, 0))
     )
     state = models.GameState(board=board, score=0)
-    return models.Py2048Game(game_id="test_game", state=state)
+    return models.Py2048Game(state=state)

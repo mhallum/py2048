@@ -19,7 +19,6 @@ from textual.widgets import (
 )
 from textual.widgets.option_list import Option
 
-from py2048.adapters.repositories import MissingGameError
 from py2048.core import commands
 from py2048.interfaces.tui.screens.game_screen import GameScreen
 from py2048.service_layer.messagebus import MessageBus  # for type hinting
@@ -70,7 +69,7 @@ class MainMenu(Screen[None]):
         selected_id = event.option_id
         match selected_id:
             case "new-game":
-                cmd = commands.StartNewGame(game_id="current_game")
+                cmd = commands.StartNewGame(slot_id="current_game")
                 self.bus.handle(cmd)
                 self.enable_resume_game()
                 await self.app.push_screen(GameScreen(bus=self.bus))  # type: ignore
@@ -88,9 +87,8 @@ class MainMenu(Screen[None]):
         Returns:
             bool: True if a current game exists and can be resumed, False otherwise.
         """
-        try:
-            self.bus.uow.games.get("current_game")
-        except MissingGameError:
+
+        if self.bus.uow.games.get("current_game") is None:  # TODO: add a view for this?
             return False
         return True
 

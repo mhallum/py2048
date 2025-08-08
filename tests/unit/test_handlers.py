@@ -16,18 +16,29 @@ class FakeGameRepository(AbstractGameRepository):
 
     def __init__(self, games: Iterable[models.Py2048Game] = ()):
         super().__init__()
-        self._games = set(games)
+        self._games: dict[str, models.Py2048Game] = {}
+        for game in games:
+            self._games[game.slot_id] = game
 
     def _add(self, game: models.Py2048Game) -> None:
         """Add a game to the fake repository."""
-        self._games.add(game)
+        self._games[game.slot_id] = game
 
-    def _get(self, game_id: str) -> models.Py2048Game:
-        """Retrieve a game by its ID from the fake repository."""
-        for game in self._games:
-            if game.game_id == game_id:
+    def _get(self, slot_id: str) -> models.Py2048Game | None:
+        """Retrieve the game in the specified slot."""
+        return self._games.get(slot_id)
+
+    def _get_by_uuid(self, game_uuid: str) -> models.Py2048Game | None:
+        """Retrieve a game by its UUID."""
+        for game in self._games.values():
+            if game.game_uuid == game_uuid:
                 return game
-        raise KeyError(f"Game with ID {game_id} not found in repository.")
+        return None
+
+    def _delete(self, slot_id: str) -> None:
+        """Delete the game in the specified slot."""
+        if slot_id in self._games:
+            del self._games[slot_id]
 
 
 class FakeUnitOfWork(AbstractUnitOfWork):
@@ -60,10 +71,13 @@ class TestCreateNewGame:
     def test_create_new_game():
         """Test creating a new game using the start_new_game handler."""
         bus = bootstrap_test_app()
-        game_id = "new_game"
-        bus.handle(commands.StartNewGame(game_id=game_id))
-        assert bus.uow.games.get(game_id) is not None
-        assert bus.uow.games.get(game_id).game_id == game_id
+
+        slot_id = "current_game"
+        bus.handle(commands.StartNewGame(slot_id=slot_id))
+
+        new_game = bus.uow.games.get(slot_id)
+        assert new_game is not None
+        assert new_game.slot_id == slot_id
 
 
 class TestMakeMove:
@@ -83,14 +97,15 @@ class TestMakeMove:
         # and the score will increase by 4.
 
         bus.uow.games.add(test_game)
-        game_id = test_game.game_id
+        game_uuid = test_game.game_uuid
         starting_board = test_game.state.board.grid
 
         # Make an initial move
-        bus.handle(commands.MakeMove(game_id=game_id, direction="up"))
+        bus.handle(commands.MakeMove(game_uuid=game_uuid, direction="up"))
 
         # Verify that the move was processed
-        game = bus.uow.games.get(game_id)
+        game = bus.uow.games.get_by_uuid(game_uuid)
+        assert game is not None
         assert len(game.moves) == 1  # move recorded
         expected_direction = "up"
         assert game.moves[0].direction == expected_direction  # correct move recorded

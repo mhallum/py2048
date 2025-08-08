@@ -13,13 +13,15 @@ class Event:
 class NewGameStarted(Event):
     """Event triggered when a new game is started."""
 
-    game_id: str
+    slot_id: str
+    game_uuid: str
 
 
 @dataclass
 class GameOver(Event):
     """Event triggered when the game is over."""
 
-    game_id: str
+    slot_id: str
+    game_uuid: str
     score: int
     final_grid: tuple[tuple[int, ...], ...]

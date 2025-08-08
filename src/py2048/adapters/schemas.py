@@ -56,7 +56,8 @@ class MoveSchema(Schema):
 class GameSchema(Schema):
     """Schema for serializing and deserializing game data."""
 
-    game_id = fields.Str(required=True)
+    slot_id = fields.Str(required=True)
+    game_uuid = fields.Str(required=True)
     state = fields.Nested(StateSchema, required=True)
     moves = fields.List(fields.Nested(MoveSchema))  # type: ignore
 

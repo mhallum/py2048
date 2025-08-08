@@ -9,6 +9,7 @@ Classes:
 """
 
 from random import Random
+from uuid import uuid4
 
 from py2048.core import events
 from py2048.core.exceptions import InvalidMove
@@ -17,6 +18,8 @@ from .game_board import GameBoard, MoveDirection
 from .game_state import GameState
 from .move import Move
 from .scoring import determine_score_from_shifted_board
+
+DEFAULT_SLOT_ID = "current_game"
 
 
 class Py2048Game:
@@ -49,30 +52,38 @@ class Py2048Game:
 
     def __init__(
         self,
-        game_id: str,
         state: GameState,
         moves: list[Move] | None = None,
+        slot_id: str = DEFAULT_SLOT_ID,
+        game_uuid: str | None = None,
     ):
         """Initialize the game model with a given state and an optional move history.
 
         Args:
             state (GameState): The initial state of the game.
             moves (list[Move] | None, optional): History of moves. Defaults to an empty list.
+            slot_id (str, optional): The slot ID for the game instance. Defaults to "current_game".
+                How the game is located or overwritten in a collection.
+            game_uuid (str | None, optional): The unique identifier for the game instance.
+                If not provided, a new UUID will be generated. It is recommended to only use this
+                parameter when restoring a game from a saved state. Otherwise, it should be left to
+                the class to generate a new UUID.
         """
-        self.game_id: str = game_id
+        self.slot_id: str = slot_id
+        self.game_uuid: str = game_uuid or uuid4().hex
         self.state: GameState = state
         self.moves: list[Move] = moves if moves is not None else []
         self.events: list[events.Event] = []
 
     def __hash__(self) -> int:
-        """Return a hash of the game instance based on its ID."""
-        return hash(self.game_id)
+        """Return a hash of the game instance based on its UUID."""
+        return hash(self.game_uuid)
 
     def __eq__(self, other: object) -> bool:
-        """Check equality based on game ID."""
+        """Check equality based on UUID."""
         if not isinstance(other, Py2048Game):
             return False
-        return self.game_id == other.game_id
+        return self.game_uuid == other.game_uuid
 
     @property
     def is_over(self) -> bool:
@@ -87,7 +98,9 @@ class Py2048Game:
         return self.state.is_over
 
     @classmethod
-    def create_new_game(cls, game_id: str, rng: Random = Random()) -> "Py2048Game":
+    def create_new_game(
+        cls, slot_id: str = DEFAULT_SLOT_ID, rng: Random = Random()
+    ) -> "Py2048Game":
         """Creates and returns a new game.
 
         This method initializes an empty game board, spawns two tiles at random positions,
@@ -95,18 +108,20 @@ class Py2048Game:
         an empty move history.
 
         Args:
-            game_id (str): The unique identifier for the new game.
+            slot_id (str): The slot ID for the new game. (where it will be stored)
             rng (Random): Random number generator used for spawning initial tiles.
 
         Returns:
-            Game: A new game instance with two tiles spawned and score set to zero.
+            Py2048Game: A new game instance with two tiles spawned and score set to zero.
         """
         board = GameBoard()  # Initialize with an empty board
         board = board.spawn_tile(rng=rng)  # Spawn the first tile
         board = board.spawn_tile(rng=rng)  # Spawn the second tile
         state = GameState(board=board, score=0)
-        new_game = cls(game_id=game_id, state=state, moves=[])
-        new_game.events.append(events.NewGameStarted(game_id=game_id))
+        new_game = cls(slot_id=slot_id, state=state, moves=[])
+        new_game.events.append(
+            events.NewGameStarted(slot_id=slot_id, game_uuid=new_game.game_uuid)
+        )
         return new_game
 
     def move(self, direction: MoveDirection, rng: Random = Random()) -> None:
@@ -161,7 +176,8 @@ class Py2048Game:
         if self.state.is_over:
             self.events.append(
                 events.GameOver(
-                    game_id=self.game_id,
+                    slot_id=self.slot_id,
+                    game_uuid=self.game_uuid,
                     score=self.state.score,
                     final_grid=self.state.board.grid,
                 )

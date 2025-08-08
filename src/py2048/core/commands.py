@@ -13,14 +13,14 @@ class Command:
 class StartNewGame(Command):
     """Command to start a new game."""
 
-    game_id: str
+    slot_id: str
 
 
 @dataclass
 class MakeMove(Command):
     """Command to make a move in the game."""
 
-    game_id: str
+    game_uuid: str
     direction: str
 
 
@@ -28,4 +28,4 @@ class MakeMove(Command):
 class ResumeGame(Command):
     """Command to resume a game."""
 
-    game_id: str
+    slot_id: str

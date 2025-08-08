@@ -1,6 +1,7 @@
 [
     {
-        "game_id": "current_game",
+        "slot_id": "current_game",
+        "game_uuid": "test_game_uuid_1",
         "state": {
             "board": {
                 "grid": [

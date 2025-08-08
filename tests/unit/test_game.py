@@ -30,15 +30,15 @@ def test_can_create_new_game():
     assert len(new_game.moves) == 0
 
 
-def test_game_hashes_and_equality_based_on_game_id():
-    """Test that Py2048Game objects with the same ID have the same hash."""
-    game_id = "game_123"
+def test_game_hashes_and_equality_based_on_game_uuid():
+    """Test that Py2048Game objects with the same uuid have the same hash."""
+    game_uuid = "game_123"
     board = models.GameBoard()
     state = models.GameState(board=board, score=0)
 
-    game1 = models.Py2048Game(game_id=game_id, state=state)
-    game2 = models.Py2048Game(game_id=game_id, state=state)
-    game3 = models.Py2048Game(game_id="game_456", state=state)
+    game1 = models.Py2048Game(game_uuid=game_uuid, state=state)
+    game2 = models.Py2048Game(game_uuid=game_uuid, state=state)
+    game3 = models.Py2048Game(game_uuid="game_456", state=state)
 
     assert hash(game1) == hash(game2)
     assert game1 == game2
@@ -52,7 +52,7 @@ def test_game_can_be_used_in_set():
     """Test that Py2048Game objects are hashable and can be added to a set."""
     state = models.GameState(board=models.GameBoard(), score=0)
 
-    game = models.Py2048Game(game_id="test", state=state)
+    game = models.Py2048Game(state=state)
     games = {game}
 
     assert game in games
@@ -64,7 +64,7 @@ def test_can_make_move():
         grid=((2, 0, 2, 0), (0, 0, 0, 0), (0, 2, 0, 2), (0, 0, 0, 0))
     )
     initial_state = models.GameState(board=initial_board, score=0)
-    game = models.Py2048Game(game_id="test_game", state=initial_state, moves=[])
+    game = models.Py2048Game(state=initial_state, moves=[])
 
     # Make a move
     game.move(models.MoveDirection.LEFT)
@@ -102,7 +102,7 @@ def test_error_is_raised_on_attempt_to_move_after_game_over(
         grid=((2, 4, 8, 16), (4, 8, 32, 64), (2, 4, 8, 16), (4, 8, 32, 64))
     )
     state = models.GameState(board=board)
-    game = models.Py2048Game(game_id="test_game", state=state)
+    game = models.Py2048Game(state=state)
 
     # Attempt to make a move after the game is over
     with pytest.raises(InvalidMove):
@@ -137,7 +137,7 @@ def test_move_that_does_not_change_board_is_not_recorded(
 
     initial_board = models.GameBoard(grid=grid)
     initial_state = models.GameState(board=initial_board)
-    game = models.Py2048Game(game_id="test_game", state=initial_state)
+    game = models.Py2048Game(state=initial_state)
 
     # Attempt to make a move that does not change the board
     game.move(direction)
@@ -151,7 +151,7 @@ def test_move_that_does_not_change_board_is_not_recorded(
 
 def test_attempting_to_undo_without_moves_raises_error():
     """Test that attempting to undo without any moves raises an error."""
-    game = models.Py2048Game(game_id="test_game", state=models.GameState())
+    game = models.Py2048Game(state=models.GameState())
 
     with pytest.raises(ValueError, match="No moves to undo."):
         game.undo_last_move()
@@ -163,7 +163,7 @@ def test_undo_last_move():
         grid=((2, 0, 2, 0), (0, 0, 0, 0), (0, 2, 0, 2), (0, 0, 0, 0))
     )
     initial_state = models.GameState(board=initial_board, score=0)
-    game = models.Py2048Game(game_id="test_game", state=initial_state, moves=[])
+    game = models.Py2048Game(state=initial_state, moves=[])
 
     # Make a move
     game.move(models.MoveDirection.LEFT)

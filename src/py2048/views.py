@@ -26,15 +26,21 @@ class GameScreenDTO:
     status: GameStatus
 
 
-def game_screen_values(
-    game_id: str, uow: unit_of_work.AbstractUnitOfWork
-) -> GameScreenDTO:
-    """Get the game screen values for a specific game ID."""
+def query_game_screen_values_by_slot(
+    slot_id: str, uow: unit_of_work.AbstractUnitOfWork
+) -> GameScreenDTO | None:
+    """Get the values needed to display the game in the given slot to the game screen.
 
-    game = uow.games.get(game_id)
+    Args:
+        slot_id (str): The identifier for the game slot.
+        uow (unit_of_work.AbstractUnitOfWork): The unit of work for database operations
+    """
+
+    if not (game := uow.games.get(slot_id)):
+        return None
     grid = game.state.board.grid
     score = game.state.score
-    high_score = 0  # Placeholder for high score, will be implemented later
+    high_score = 0  # TODO: Placeholder for high score, will be implemented later
     if game.is_over:
         status = GameStatus.OVER
     elif len(game.moves) == 0:
