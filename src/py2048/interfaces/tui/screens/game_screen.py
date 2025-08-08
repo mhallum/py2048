@@ -38,6 +38,9 @@ class GameScreen(Screen[None]):
                 slot_id, uow=self.bus.uow
             )
         ):
+            # TODO: update.
+            # This should never happen now that resume game is disabled when there is no game
+            # to resume and the game screen is not initialized util a game is started or resumed.
             # Handle the case where the game is not found
             self._score = 0
             self._high_score = 0
@@ -67,19 +70,18 @@ class GameScreen(Screen[None]):
 
         cmd = commands.MakeMove(game_uuid=game_uuid, direction=direction)
         self.bus.handle(cmd)
-        updated_values = views.query_game_screen_values_by_slot(
+        if updated_values := views.query_game_screen_values_by_slot(
             slot_id="current_game", uow=self.bus.uow
-        )
-        assert (
-            updated_values is not None
-        )  # TODO: remove this assertions. Handle the case where the game is not found
-        self.board.update_board(updated_values.grid)
-        self.update_score(updated_values.score)
+        ):
+            self.board.update_board(updated_values.grid)
+            self.update_score(updated_values.score)
 
-        if updated_values.status == views.GameStatus.OVER:
-            await self.app.push_screen(  # type: ignore
-                GameOverScreen(final_score=updated_values.score)
-            )
+        else:  # If the game is not found after making a move, it means that it has ended.
+            # TODO: fix the score here! it is not the final score if the last move added points.
+            # Get the score from an object storing past scores instead. use a view
+            self.app.push_screen(GameOverScreen(final_score=self._score))
+            self.app.get_screen("main_menu").disable_resume_game()  # type: ignore
+            return
 
     async def action_quit(self) -> None:
         """Quit to the main menu."""

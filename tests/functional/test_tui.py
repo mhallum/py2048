@@ -292,6 +292,11 @@ async def test_finishing_game(
         # The user is back in the main menu
         assert get_main_menu_screen(app).is_active
 
+        # The user sees that "Resume Game" is now disabled
+        assert get_resume_game_option(app).disabled is True, (
+            "Resume Game option should be disabled after finishing the game, but it is not."
+        )
+
         # The user decides to quit the game
         await pilot.press("q")
 

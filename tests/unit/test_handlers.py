@@ -200,3 +200,17 @@ class TestMakeMove:
     # TODO: test_that_making_a_move_on_a_game_with_no_tiles_raises_error
 
     # TODO: test_that_move_is_logged
+
+    @staticmethod
+    def test_game_is_deleted_after_game_over(almost_over_test_game: models.Py2048Game):
+        """Test that the game is deleted after game over."""
+        bus = bootstrap_test_app()
+        bus.uow.games.add(almost_over_test_game)
+        game_uuid = almost_over_test_game.game_uuid
+
+        # Simulate a move that results in game over
+        bus.handle(commands.MakeMove(game_uuid=game_uuid, direction="up"))
+
+        assert bus.uow.games.get_by_uuid(game_uuid) is None, (
+            f"Game with UUID {game_uuid} should be deleted after game over, but it still exists."
+        )

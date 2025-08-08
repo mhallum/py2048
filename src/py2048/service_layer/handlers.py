@@ -42,8 +42,17 @@ def make_move(
         uow.commit()
 
 
+def delete_completed_game(event: events.GameOver, uow: AbstractUnitOfWork) -> None:
+    """Handler for deleting a completed game."""
+    with uow:
+        if game := uow.games.get_by_uuid(event.game_uuid):
+            uow.games.delete(game.slot_id)
+            uow.commit()
+
+
 EVENT_HANDLERS: dict[type[events.Event], list[Callable[..., None]]] = {
     events.NewGameStarted: [log_new_game_event],
+    events.GameOver: [delete_completed_game],
 }
 
 COMMAND_HANDLERS: dict[type[commands.Command], Callable[..., None]] = {

@@ -100,3 +100,13 @@ def test_game() -> models.Py2048Game:
     )
     state = models.GameState(board=board, score=0)
     return models.Py2048Game(state=state)
+
+
+@pytest.fixture
+def almost_over_test_game() -> models.Py2048Game:
+    """Fixture to create a test game instance that is almost over."""
+    board = models.GameBoard(
+        grid=((8, 4, 2, 0), (4, 2, 32, 16), (64, 128, 64, 2), (2, 32, 16, 4))
+    )
+    state = models.GameState(board=board, score=1716)
+    return models.Py2048Game(state=state)
