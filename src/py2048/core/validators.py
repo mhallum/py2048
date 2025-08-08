@@ -1,4 +1,14 @@
-"""Validators for the 2048 game core module."""
+"""Validation logic for the 2048 game domain.
+
+This module defines validation functions for ensuring the integrity
+of game board data structures. These checks enforce domain constraints such as:
+
+- Consistent board shape (each row must be the same length).
+- Valid tile values (must be 0 or a positive power of two).
+
+Raises:
+    InvalidGameBoard: If the board violates any structural or value constraints.
+"""
 
 from typing import TYPE_CHECKING
 
