@@ -22,8 +22,6 @@ class GameScreenDTO:
 
     grid: tuple[tuple[int, ...], ...]
     score: int
-    high_score: int
-    status: GameStatus
 
 
 def query_high_score(uow: unit_of_work.AbstractUnitOfWork) -> int:
@@ -35,8 +33,8 @@ def query_high_score(uow: unit_of_work.AbstractUnitOfWork) -> int:
     Returns:
         int: The highest score recorded in the game records.
     """
-    records = uow.records.list()
-    if not records:
+
+    if not (records := uow.records.list()):
         return 0
     return max(record.final_score for record in records)
 
@@ -71,11 +69,4 @@ def query_game_screen_values_by_slot(
         return None
     grid = game.state.board.grid
     score = game.state.score
-    high_score = 0  # TODO: Placeholder for high score, will be implemented later
-    if game.is_over:
-        status = GameStatus.OVER
-    elif len(game.moves) == 0:
-        status = GameStatus.NEW
-    else:
-        status = GameStatus.IN_PROGRESS
-    return GameScreenDTO(grid=grid, score=score, high_score=high_score, status=status)
+    return GameScreenDTO(grid=grid, score=score)

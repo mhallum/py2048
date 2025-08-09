@@ -24,9 +24,6 @@ def test_game_screen_values_view(fake_user_data_folder_with_game_1: Path):
     assert screen_values is not None
     assert screen_values.grid == expected_grid
     assert screen_values.score == expected_score
-    assert (
-        screen_values.high_score == 0
-    )  # Placeholder, high score logic not implemented yet
 
 
 def test_high_score_query(fake_user_data_folder_with_records_file: Path):

@@ -38,20 +38,16 @@ class GameScreen(Screen[None]):
                 slot_id, uow=self.bus.uow
             )
         ):
-            # TODO: update.
             # This should never happen now that resume game is disabled when there is no game
-            # to resume and the game screen is not initialized util a game is started or resumed.
-            # Handle the case where the game is not found
-            self._score = 0
-            self._high_score = 0
-            self.board = GameBoard(
-                grid=((0, 0, 0, 0), (0, 0, 0, 0), (0, 0, 0, 0), (0, 0, 0, 0))
-            )  # Initialize with an empty board
+            # to resume and the game screen is not initialized until a game is started or resumed.
+            # This is a safeguard just in case.
+            raise ValueError(
+                f"No game found for slot {slot_id}. Please start a new game."
+            )  # pragma: no cover
 
-        else:
-            self._score = initial_values.score
-            self._high_score = initial_values.high_score
-            self.board = GameBoard(grid=initial_values.grid)
+        self._score = initial_values.score
+        self._high_score = views.query_high_score(uow=self.bus.uow)
+        self.board = GameBoard(grid=initial_values.grid)
 
     def compose(self) -> ComposeResult:
         yield Header()
