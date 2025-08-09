@@ -20,7 +20,6 @@ class AbstractRecordsRepository(abc.ABC):
     def get(self, game_uuid: str) -> "GameRecord | None":
         """Return the record for game_uuid, or None."""
 
-    @abc.abstractmethod
     def save(self) -> None:
         """Save the current state of the repository (if applicable)."""
 

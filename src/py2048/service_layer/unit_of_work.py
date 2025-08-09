@@ -18,6 +18,7 @@ class AbstractUnitOfWork(abc.ABC):
     """
 
     games: repositories.AbstractGameRepository
+    records: repositories.AbstractRecordsRepository
 
     def __enter__(self) -> "AbstractUnitOfWork":
         """Enter the runtime context related to this object."""
@@ -65,10 +66,12 @@ class JsonUnitOfWork(AbstractUnitOfWork):
 
     def __init__(self, folder: str | Path):
         self.games = repositories.JsonGameRepository(folder)
+        self.records = repositories.JsonRecordRepository(folder)
 
     def _commit(self):
         """Commit the current unit of work."""
         self.games.save()
+        self.records.save()
 
     def rollback(self):
         """Rollback the current unit of work."""

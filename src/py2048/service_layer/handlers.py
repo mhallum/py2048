@@ -6,6 +6,7 @@ from random import Random
 
 from py2048.core import commands, events
 from py2048.core.models import MoveDirection, Py2048Game
+from py2048.core.models.record import GameRecord
 from py2048.service_layer.unit_of_work import AbstractUnitOfWork
 
 logger = logging.getLogger(__name__)
@@ -50,9 +51,23 @@ def delete_completed_game(event: events.GameOver, uow: AbstractUnitOfWork) -> No
             uow.commit()
 
 
+def record_game_over(event: events.GameOver, uow: AbstractUnitOfWork) -> None:
+    """Handler for recording the game over event."""
+    with uow:
+        if not uow.records.get(event.game_uuid):
+            record: GameRecord = GameRecord(
+                game_uuid=event.game_uuid,
+                final_score=event.final_score,
+                max_tile=event.max_tile,
+                number_of_moves=event.number_of_moves,
+            )
+            uow.records.add(record)
+        uow.commit()
+
+
 EVENT_HANDLERS: dict[type[events.Event], list[Callable[..., None]]] = {
     events.NewGameStarted: [log_new_game_event],
-    events.GameOver: [delete_completed_game],
+    events.GameOver: [record_game_over, delete_completed_game],
 }
 
 COMMAND_HANDLERS: dict[type[commands.Command], Callable[..., None]] = {

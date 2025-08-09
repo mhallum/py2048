@@ -9,8 +9,12 @@ from pprint import pformat
 import pytest
 
 from py2048 import bootstrap
-from py2048.adapters.repositories import AbstractGameRepository
+from py2048.adapters.repositories import (
+    AbstractGameRepository,
+    AbstractRecordsRepository,
+)
 from py2048.core import commands, models
+from py2048.core.models.record import GameRecord
 from py2048.service_layer.unit_of_work import AbstractUnitOfWork
 
 
@@ -44,11 +48,32 @@ class FakeGameRepository(AbstractGameRepository):
             del self._games[slot_id]
 
 
+class FakeRecordRepository(AbstractRecordsRepository):
+    """A fake record repository for testing purposes."""
+
+    def __init__(self, records: Iterable[GameRecord] = ()):
+        self._records: dict[str, GameRecord] = {}
+        for record in records:
+            self._records[record.game_uuid] = record
+
+    def add(self, record: GameRecord) -> None:
+        """Add a game record to the fake repository."""
+        self._records[record.game_uuid] = record
+
+    def get(self, game_uuid: str) -> GameRecord | None:
+        """Retrieve a game record by its UUID."""
+        return self._records.get(game_uuid)
+
+    def save(self) -> None:
+        """No-op for the fake repository."""
+
+
 class FakeUnitOfWork(AbstractUnitOfWork):
     """A fake unit of work for testing purposes."""
 
     def __init__(self):
         self.games = FakeGameRepository([])
+        self.records = FakeRecordRepository([])
         self.committed = False
 
     def _commit(self) -> None:
@@ -213,4 +238,29 @@ class TestMakeMove:
 
         assert bus.uow.games.get_by_uuid(game_uuid) is None, (
             f"Game with UUID {game_uuid} should be deleted after game over, but it still exists."
+        )
+
+    @staticmethod
+    def test_game_record_is_added_to_repository_after_game_over(
+        almost_over_test_game: models.Py2048Game,
+    ):
+        """Test that a game record is added to the repository after game over."""
+        bus = bootstrap_test_app()
+        bus.uow.games.add(almost_over_test_game)
+        game_uuid = almost_over_test_game.game_uuid
+
+        # Simulate a move that results in game over
+        bus.handle(commands.MakeMove(game_uuid=game_uuid, direction="up"))
+
+        # Check if the record was created
+        record = bus.uow.records.get(game_uuid)
+        assert record is not None, "Record should have been created, but was not."
+        expected_record = GameRecord(
+            game_uuid=record.game_uuid,
+            final_score=1716,
+            max_tile=128,
+            number_of_moves=1,
+        )
+        assert record == expected_record, (
+            f"Expected record:\n{pformat(expected_record)}\nGot:\n{pformat(record)}"
         )
