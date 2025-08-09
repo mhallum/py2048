@@ -285,6 +285,17 @@ async def test_finishing_game(
         assert app.screen.query_one("#final-score #value-part").renderable == str(  # type: ignore
             expected_final_score
         )
+        # The user can see the high score
+        expected_high_score = 1716
+        assert app.screen.query_one("#high-score #value-part").renderable == str(  # type: ignore
+            expected_high_score
+        )
+        # The user sees a message indicating they achieved a new high score
+        new_high_score_message = "✨ New High Score! ✨"
+        assert (
+            app.screen.get_child_by_id("new-high-score").renderable  # type: ignore
+            == new_high_score_message
+        )
 
         # The user presses a key to return to the main menu
         await pilot.press("enter")

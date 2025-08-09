@@ -82,7 +82,10 @@ class GameScreen(Screen[None]):
                 raise ValueError(
                     f"Final score for game {game_uuid} not found!"
                 )  # pragma: no cover
-            self.app.push_screen(GameOverScreen(final_score=final_score))
+            high_score = views.query_high_score(uow=self.bus.uow)
+            self.app.push_screen(
+                GameOverScreen(final_score=final_score, high_score=high_score)
+            )
             self.app.get_screen("main_menu").disable_resume_game()  # type: ignore
             return
 

@@ -18,15 +18,20 @@ class GameOverScreen(Screen[None]):
 
     BINDINGS: ClassVar[list[Binding]] = []
 
-    def __init__(self, final_score: int) -> None:
+    def __init__(self, final_score: int, high_score: int) -> None:
         super().__init__()
         self.final_score = final_score
+        self.high_score = high_score
 
     def compose(self) -> ComposeResult:
         """Create child widgets"""
         yield Header()
         yield Label("GAME OVER!", id="game-over-title")
         yield LabelValue(label="Final Score", value=self.final_score, id="final-score")
+        yield LabelValue(label="High Score", value=self.high_score, id="high-score")
+        if self.final_score == self.high_score:
+            # Display a special message if the final score is a new high score
+            yield Label("✨ New High Score! ✨", id="new-high-score")
         yield Label(
             "Press any key to return to the main menu.", id="game-over-instructions"
         )

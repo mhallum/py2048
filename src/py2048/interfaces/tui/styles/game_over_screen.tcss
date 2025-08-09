@@ -17,6 +17,13 @@ GameOverScreen{
     align: center middle;
 }
 
+#new-high-score{
+    width: 100%;
+    align: center middle;
+    text-align: center;
+    padding: 1;
+}
+
 #game-over-instructions{
     width: 100%;
     text-align: center;
