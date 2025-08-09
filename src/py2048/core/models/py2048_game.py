@@ -178,8 +178,9 @@ class Py2048Game:
                 events.GameOver(
                     slot_id=self.slot_id,
                     game_uuid=self.game_uuid,
-                    score=self.state.score,
-                    final_grid=self.state.board.grid,
+                    final_score=self.state.score,
+                    max_tile=max(self.state.board.tile_values),
+                    number_of_moves=len(self.moves),
                 )
             )
 

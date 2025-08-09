@@ -23,5 +23,6 @@ class GameOver(Event):
 
     slot_id: str
     game_uuid: str
-    score: int
-    final_grid: tuple[tuple[int, ...], ...]
+    final_score: int
+    max_tile: int
+    number_of_moves: int
