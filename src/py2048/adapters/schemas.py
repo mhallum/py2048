@@ -5,6 +5,7 @@ from typing import Any
 from marshmallow import Schema, fields, post_load
 
 from py2048.core import models
+from py2048.core.models.record import GameRecord
 
 # pylint: disable=unused-argument, no-self-use
 
@@ -65,3 +66,17 @@ class GameSchema(Schema):
     def make_game(self, data: dict[str, Any], **kwargs: Any) -> models.Py2048Game:
         """Create a Game instance from the deserialized data."""
         return models.Py2048Game(**data)
+
+
+class RecordSchema(Schema):
+    """Schema for serializing and deserializing game records."""
+
+    game_uuid = fields.Str(required=True)
+    final_score = fields.Int(required=True)
+    max_tile = fields.Int(required=True)
+    number_of_moves = fields.Int(required=True)
+
+    @post_load
+    def make_record(self, data: dict[str, Any], **kwargs: Any) -> GameRecord:
+        """Create a GameRecord instance from the deserialized data."""
+        return GameRecord(**data)

@@ -156,6 +156,4 @@ class JsonGameRepository(AbstractGameRepository):
             self._save_game_path.parent.mkdir(parents=True)
 
         with self._save_game_path.open("w", encoding="utf-8") as file:
-            json.dump(
-                GameSchema().dump(self._games.values(), many=True), file, indent=4
-            )
+            json.dump(GameSchema().dump(self._games.values(), many=True), file)

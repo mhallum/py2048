@@ -1,0 +1,4 @@
+[
+    {"game_uuid": "test_uuid_1", "final_score": 100, "max_tile": 32, "number_of_moves": 10},
+    {"game_uuid": "test_uuid_2", "final_score": 200, "max_tile": 64, "number_of_moves": 20}
+]

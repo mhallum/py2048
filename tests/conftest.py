@@ -26,8 +26,16 @@ def load_tcss_files() -> dict[str, str]:
     return {path.name: path.read_text() for path in styles_dir.glob("*.tcss")}
 
 
+def load_fake_record_data(filename: str) -> str:
+    """Load test record data from a JSON file."""
+    path = Path(__file__).parent / "data" / filename
+    with open(path, "r", encoding="utf-8") as file:
+        return file.read()
+
+
 fake_game_data_1 = load_fake_game_data("test_game_1.json")
 fake_game_data_2 = load_fake_game_data("test_game_2.json")
+fake_record_data = load_fake_record_data("test_records_file.json")
 
 tcss_files = load_tcss_files()
 
@@ -89,6 +97,29 @@ def fake_user_data_folder_with_game_2(
     games_file = fake_user_data_folder / "games.json"  # type: ignore
     fs.create_file(str(games_file), contents=fake_game_data_2)  # type: ignore
 
+    return fake_user_data_folder
+
+
+@pytest.fixture
+def fake_user_data_folder_with_empty_record_file(
+    fs: FakeFilesystem,
+    fake_user_data_folder: Path,  # pylint: disable=redefined-outer-name
+) -> Path:
+    """Fixture to provide a fake user data folder with an empty records file."""
+    records_file = fake_user_data_folder / "records.json"  # type: ignore
+    fs.create_file(str(records_file), contents="[]")  # type: ignore
+    return fake_user_data_folder
+
+
+@pytest.fixture
+def fake_user_data_folder_with_records_file(
+    fs: FakeFilesystem,
+    fake_user_data_folder: Path,  # pylint: disable=redefined-outer-name
+) -> Path:
+    """Fixture to provide a fake user data folder with a records file."""
+    records_file = fake_user_data_folder / "records.json"  # type: ignore
+
+    fs.create_file(str(records_file), contents=fake_record_data)  # type: ignore
     return fake_user_data_folder
 
 
