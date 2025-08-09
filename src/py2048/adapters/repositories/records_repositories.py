@@ -23,6 +23,10 @@ class AbstractRecordsRepository(abc.ABC):
     def save(self) -> None:
         """Save the current state of the repository (if applicable)."""
 
+    @abc.abstractmethod
+    def list(self) -> list[GameRecord]:
+        """Return a list of all records in the repository."""
+
 
 # Probably ok for up to about 40,000 records.
 class JsonRecordRepository(AbstractRecordsRepository):
@@ -63,3 +67,7 @@ class JsonRecordRepository(AbstractRecordsRepository):
 
         with self._file_path.open("w", encoding="utf-8") as file:
             json.dump(RecordSchema().dump(self._records.values(), many=True), file)
+
+    def list(self) -> list[GameRecord]:
+        """Return a list of all records in the repository."""
+        return list(self._records.values())

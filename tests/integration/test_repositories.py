@@ -207,3 +207,30 @@ class TestJsonRecordRepository:
         )
         self.assert_num_records(reloaded_repo, 1)
         assert reloaded_repo.get("new_uuid") == new_record
+
+    @staticmethod
+    def test_can_list_all_records(
+        fake_user_data_folder_with_records_file: Path,
+    ):
+        """Test listing all records in the JSON repository."""
+        repository = JsonRecordRepository(
+            folder=fake_user_data_folder_with_records_file
+        )
+
+        records = repository.list()
+
+        expected_records = [
+            GameRecord(
+                game_uuid="test_uuid_1",
+                final_score=100,
+                max_tile=32,
+                number_of_moves=10,
+            ),
+            GameRecord(
+                game_uuid="test_uuid_2",
+                final_score=200,
+                max_tile=64,
+                number_of_moves=20,
+            ),
+        ]
+        assert records == expected_records

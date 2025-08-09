@@ -67,6 +67,10 @@ class FakeRecordRepository(AbstractRecordsRepository):
     def save(self) -> None:
         """No-op for the fake repository."""
 
+    def list(self) -> list[GameRecord]:
+        """Return a list of all game records."""
+        return list(self._records.values())
+
 
 class FakeUnitOfWork(AbstractUnitOfWork):
     """A fake unit of work for testing purposes."""

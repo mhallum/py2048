@@ -26,6 +26,37 @@ class GameScreenDTO:
     status: GameStatus
 
 
+def query_high_score(uow: unit_of_work.AbstractUnitOfWork) -> int:
+    """Get the high score from the game records.
+
+    Args:
+        uow (unit_of_work.AbstractUnitOfWork): The unit of work for database operations
+
+    Returns:
+        int: The highest score recorded in the game records.
+    """
+    records = uow.records.list()
+    if not records:
+        return 0
+    return max(record.final_score for record in records)
+
+
+def final_score_query(
+    uow: unit_of_work.AbstractUnitOfWork, game_uuid: str
+) -> int | None:
+    """Get the final score of a game by its UUID.
+
+    Args:
+        uow (unit_of_work.AbstractUnitOfWork): The unit of work for database operations
+        game_uuid (str): The UUID of the game to retrieve the final score for
+
+    Returns:
+        int: The final score of the game, or None if the game is not found.
+    """
+    record = uow.records.get(game_uuid)
+    return record.final_score if record else None
+
+
 def query_game_screen_values_by_slot(
     slot_id: str, uow: unit_of_work.AbstractUnitOfWork
 ) -> GameScreenDTO | None:
