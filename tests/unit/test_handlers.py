@@ -78,7 +78,7 @@ class FakeUnitOfWork(AbstractUnitOfWork):
     def __init__(self):
         self.games = FakeGameRepository([])
         self.records = FakeRecordRepository([])
-        self.committed = False
+        self.committed: bool = False
 
     def _commit(self) -> None:
         """Commit the current unit of work."""
@@ -96,7 +96,6 @@ def bootstrap_test_app():
     return bootstrap.bootstrap(uow=uow, rng=rng)
 
 
-# TODO: add tests to make sure game is created correctly
 class TestCreateNewGame:
     """Test suite for creating a new game."""
 
@@ -133,15 +132,77 @@ class TestMakeMove:
         assert len(test_game.moves) == initial_num_moves + 1
         assert test_game.moves[-1].direction == move_direction
 
-    # TODO: test_no_tile_is_spawned_if_board_does_not_change
+    @staticmethod
+    def test_move_that_makes_no_changes_does_not_add_to_history(
+        test_game: models.Py2048Game,
+    ):
+        """Test that a move that does not change the game state does not add to the history."""
 
-    # TODO: test_move_that_makes_no_changes_does_not_add_to_history
+        initial_num_moves = len(test_game.moves)
+        bus = bootstrap_test_app()
+        bus.uow.games.add(test_game)
+        game_uuid = test_game.game_uuid
 
-    # TODO: test_move_on_non_existent_game_raises_error
+        move_direction = "right"  # This move should not change the game state
+        bus.handle(commands.MakeMove(game_uuid=game_uuid, direction=move_direction))
 
-    # TODO: test_that_move_handler_commits
+        assert len(test_game.moves) == initial_num_moves
 
-    # TODO: test_that_correct_move_is_added_to_history
+    @staticmethod
+    def test_that_correct_move_is_added_to_history(test_game: models.Py2048Game):
+        """Test that the correct move is added to the game's move history."""
+
+        initial_num_moves = len(test_game.moves)
+        bus = bootstrap_test_app()
+        bus.uow.games.add(test_game)
+        game_uuid = test_game.game_uuid
+        pre_move_state = test_game.state
+
+        move_direction = "up"
+        bus.handle(commands.MakeMove(game_uuid=game_uuid, direction=move_direction))
+
+        expected_after_state = models.GameState(
+            board=models.GameBoard(
+                grid=(
+                    (0, 0, 0, 4),
+                    (0, 0, 0, 0),
+                    (0, 0, 0, 0),
+                    (0, 0, 0, 0),
+                )  # after moving up, before spawning a new tile
+            ),
+            score=4,
+        )
+
+        assert len(test_game.moves) == initial_num_moves + 1
+        assert test_game.moves[-1].direction == move_direction
+        assert test_game.moves[-1].before_state == pre_move_state
+        assert test_game.moves[-1].after_state == expected_after_state
+
+    @staticmethod
+    def test_move_on_non_existent_game_raises_error():
+        """Test that making a move on a non-existent game raises an error."""
+        bus = bootstrap_test_app()
+        game_uuid = "non_existent_game_uuid"
+        move_direction = "up"
+
+        with pytest.raises(ValueError):
+            bus.handle(commands.MakeMove(game_uuid=game_uuid, direction=move_direction))
+
+    @staticmethod
+    def test_that_move_handler_commits():
+        """Test that the make_move handler commits the unit of work."""
+        bus = bootstrap_test_app()
+        test_game = models.Py2048Game.create_new_game(slot_id="test_slot")
+        bus.uow.games.add(test_game)
+        game_uuid = test_game.game_uuid
+
+        assert not bus.uow.committed, (  # type: ignore
+            "Unit of work should not be committed before handling."
+        )
+
+        bus.handle(commands.MakeMove(game_uuid=game_uuid, direction="up"))
+
+        assert bus.uow.committed, "Unit of work should be committed after handling."  # type: ignore
 
     @pytest.mark.parametrize(
         "move_direction, expected_gain",
@@ -174,8 +235,6 @@ class TestMakeMove:
         bus.handle(commands.MakeMove(game_uuid=game_uuid, direction=move_direction))
 
         assert test_game.state.score == initial_score + expected_gain
-
-    # TODO: test_move_updates_board
 
     @pytest.mark.parametrize(
         "move_direction, expected_updated_board",
@@ -223,12 +282,6 @@ class TestMakeMove:
             f"Expected:\n{pformat(expected_updated_board)}\n"
             f"Got:\n{pformat(result)}"
         )
-
-    # TODO: test_that_making_a_move_on_an_already_ended_game_raises_error
-
-    # TODO: test_that_making_a_move_on_a_game_with_no_tiles_raises_error
-
-    # TODO: test_that_move_is_logged
 
     @staticmethod
     def test_game_is_deleted_after_game_over(almost_over_test_game: models.Py2048Game):
