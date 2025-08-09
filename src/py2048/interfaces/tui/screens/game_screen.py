@@ -77,9 +77,12 @@ class GameScreen(Screen[None]):
             self.update_score(updated_values.score)
 
         else:  # If the game is not found after making a move, it means that it has ended.
-            # TODO: fix the score here! it is not the final score if the last move added points.
-            # Get the score from an object storing past scores instead. use a view
-            self.app.push_screen(GameOverScreen(final_score=self._score))
+            final_score = views.final_score_query(uow=self.bus.uow, game_uuid=game_uuid)
+            if final_score is None:  # This should not happen, but here as a safeguard.
+                raise ValueError(
+                    f"Final score for game {game_uuid} not found!"
+                )  # pragma: no cover
+            self.app.push_screen(GameOverScreen(final_score=final_score))
             self.app.get_screen("main_menu").disable_resume_game()  # type: ignore
             return
 
